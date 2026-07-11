@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ama Events Co. — Book Your Celebration</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Work+Sans:wght@400;500;600;700&display=swap');
+
+  :root{
+    --wine: #45102A;
+    --wine-deep: #33091F;
+    --ivory: #FBF3E7;
+    --ivory-dim: #E9D9C3;
+    --gold: #C9A227;
+    --gold-soft: #E3C567;
+    --emerald: #1B5540;
+    --emerald-deep: #123A2B;
+    --clay: #B15A2E;
+    --ink: #2B1220;
+    --ink-soft: #6b4a58;
+    --success: #1F5C43;
+    --error: #A23B3B;
+    --radius: 3px;
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Work Sans', -apple-system, sans-serif;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background: var(--wine);
+    color: var(--ivory);
+    font-family: var(--sans);
+    line-height:1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow-x:hidden;
+  }
+  a{color:inherit;}
+  button{font-family:inherit; cursor:pointer; border:none; background:none;}
+  ::selection{background:var(--gold); color:var(--wine-deep);}
+
+  body::before{
+    content:"";
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(201,162,39,0.06) 0, transparent 38%),
+      radial-gradient(circle at 85% 70%, rgba(201,162,39,0.045) 0, transparent 42%);
+  }
+
+  .wrap{max-width:1160px; margin:0 auto; padding:0 28px; position:relative; z-index:1;}
+
+  /* ============ ASO-OKE STRIPE — signature motif ============
+     A woven band of narrow color stripes, styled after aso-oke
+     cloth. Used as a structural divider throughout: it always
+     marks a transition between sections, the way a border strip
+     marks the edge of a wrapper. */
+  .aso-stripe{
+    height:7px; width:100%;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--gold) 0 14px,
+      var(--emerald) 14px 20px,
+      var(--wine-deep) 20px 26px,
+      var(--gold-soft) 26px 36px,
+      var(--clay) 36px 42px,
+      var(--emerald) 42px 48px
+    );
+  }
+  .aso-stripe.thin{height:4px;}
+
+  /* ============ NAV ============ */
+  nav{
+    position:sticky; top:0; z-index:50;
+    background:rgba(51,9,31,0.94); backdrop-filter:blur(8px);
+  }
+  nav .wrap{display:flex; align-items:center; justify-content:space-between; padding:16px 28px;}
+  .brand{font-family:var(--serif); font-weight:600; font-size:1.32rem; display:flex; align-items:center; gap:10px;}
+  .brand .seal{
+    width:30px; height:30px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--gold-soft), var(--gold) 75%);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--serif); font-size:0.9rem; color:var(--wine-deep); font-weight:700;
+    box-shadow:0 0 0 2px rgba(201,162,39,0.3); flex-shrink:0;
+  }
+  .nav-links{display:flex; gap:32px; font-size:0.9rem; font-weight:500;}
+  .nav-links a{text-decoration:none; opacity:0.85; border-bottom:1px solid transparent; padding-bottom:3px; transition:opacity .2s, border-color .2s;}
+  .nav-links a:hover{opacity:1; border-color:var(--gold-soft);}
+  .nav-cta{background:var(--gold); color:var(--wine-deep); padding:9px 20px; border-radius:2px; font-weight:600; font-size:0.86rem; text-decoration:none; transition:transform .15s, box-shadow .15s;}
+  .nav-cta:hover{transform:translateY(-1px); box-shadow:0 6px 16px rgba(201,162,39,0.32);}
+  @media (max-width:720px){ .nav-links{display:none;} }
+
+  /* ============ HERO ============ */
+  header.hero{padding:80px 0 64px; position:relative; overflow:hidden;}
+  .hero-grid{display:grid; grid-template-columns:1.15fr 0.85fr; gap:40px; align-items:center;}
+  @media (max-width:900px){ .hero-grid{grid-template-columns:1fr;} }
+
+  .eyebrow{font-size:0.76rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-soft); font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:10px;}
+  .eyebrow::before{content:""; width:26px; height:1px; background:var(--gold-soft);}
+  h1.display{font-family:var(--serif); font-weight:600; font-size:clamp(2.3rem,5vw,3.7rem); line-height:1.08; letter-spacing:-0.01em;}
+  h1.display em{font-style:italic; font-weight:500; color:var(--gold-soft);}
+  .hero-sub{margin-top:20px; max-width:480px; font-size:1.05rem; color:var(--ivory-dim);}
+  .hero-actions{display:flex; gap:14px; margin-top:32px; flex-wrap:wrap;}
+  .btn-primary{background:var(--gold); color:var(--wine-deep); padding:14px 26px; font-weight:600; font-size:0.93rem; border-radius:2px; text-decoration:none; display:inline-block; transition:transform .15s, box-shadow .15s;}
+  .btn-primary:hover{transform:translateY(-2px); box-shadow:0 10px 24px rgba(201,162,39,0.3);}
+  .btn-ghost{border:1px solid rgba(251,243,231,0.32); color:var(--ivory); padding:14px 26px; font-weight:600; font-size:0.93rem; border-radius:2px; text-decoration:none; display:inline-block; transition:border-color .15s, background .15s;}
+  .btn-ghost:hover{border-color:var(--gold-soft); background:rgba(201,162,39,0.08);}
+  .trust-note{margin-top:28px; font-size:0.82rem; color:var(--ivory-dim); opacity:0.75; letter-spacing:0.01em;}
+
+  /* hero motif: layered arch built from concentric gold linework,
+     evoking a decorated event canopy/arch — the single physical
+     object most associated with Nigerian owambe celebrations */
+  .hero-motif{position:relative; aspect-ratio:1/1; max-width:400px; margin:0 auto;}
+
+  /* ============ SECTIONS ============ */
+  .section{padding:60px 0;}
+  .section-head{margin-bottom:38px;}
+  .section-label{font-size:0.76rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--gold-soft); font-weight:600; margin-bottom:9px;}
+  h2.section-title{font-family:var(--serif); font-weight:600; font-size:clamp(1.65rem,3.2vw,2.2rem);}
+  .section-desc{color:var(--ivory-dim); margin-top:9px; max-width:500px; font-size:0.96rem;}
+
+  /* ============ PACKAGE CARDS ============ */
+  .grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:26px;}
+  .stub{
+    background:var(--ivory); color:var(--ink); border-radius:var(--radius); overflow:hidden;
+    display:flex; flex-direction:column; box-shadow:0 14px 32px rgba(0,0,0,0.3);
+    opacity:0; animation:rise .6s ease forwards; transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .stub:hover{transform:translateY(-6px); box-shadow:0 22px 44px rgba(0,0,0,0.38);}
+  @keyframes rise{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);}}
+
+  .stub-art{height:172px; position:relative;}
+  .stub-art svg{width:100%; height:100%; display:block;}
+
+  .stub .aso-stripe{height:5px;}
+
+  .stub-body{padding:22px 24px 24px;}
+  .stub-kicker{font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--wine); font-weight:700; opacity:0.65;}
+  .stub-title{font-family:var(--serif); font-weight:600; font-size:1.3rem; margin-top:4px;}
+  .stub-desc{font-size:0.87rem; color:var(--ink-soft); margin-top:8px; line-height:1.5;}
+  .stub-meta{display:flex; justify-content:space-between; align-items:center; margin-top:18px; padding-top:16px; border-top:1px solid rgba(43,18,32,0.1);}
+  .stub-price{font-size:0.8rem; color:var(--ink-soft);}
+  .stub-price strong{display:block; font-family:var(--serif); font-size:1.02rem; color:var(--wine); font-weight:600;}
+  .stub-btn{background:var(--wine); color:var(--ivory); padding:9px 18px; border-radius:2px; font-weight:600; font-size:0.83rem; transition:background .15s;}
+  .stub-btn:hover{background:var(--wine-deep);}
+
+  /* ============ RENTALS ============ */
+  .rental-list{background:rgba(251,243,231,0.045); border:1px solid rgba(201,162,39,0.22); border-radius:var(--radius); overflow:hidden;}
+  .rental-row{display:grid; grid-template-columns:36px 1fr auto; align-items:center; gap:16px; padding:17px 22px; border-bottom:1px solid rgba(201,162,39,0.12);}
+  .rental-row:last-child{border-bottom:none;}
+  .rental-row svg{width:22px; height:22px; opacity:0.85;}
+  .rental-name{font-weight:600; font-size:0.98rem;}
+  .rental-desc{font-size:0.83rem; color:var(--ivory-dim); margin-top:2px;}
+  .rental-add{border:1px solid var(--gold-soft); color:var(--gold-soft); padding:8px 16px; border-radius:2px; font-weight:600; font-size:0.8rem; transition:background .15s, color .15s;}
+  .rental-add:hover{background:var(--gold-soft); color:var(--wine-deep);}
+
+  /* ============ BOOKING PANEL ============ */
+  .overlay{position:fixed; inset:0; background:rgba(16,4,10,0.62); backdrop-filter:blur(3px); z-index:100; opacity:0; pointer-events:none; transition:opacity .25s ease;}
+  .overlay.active{opacity:1; pointer-events:auto;}
+  .panel{position:fixed; top:0; right:0; height:100%; width:min(460px,92vw); background:var(--ivory); color:var(--ink); z-index:101; transform:translateX(100%); transition:transform .32s cubic-bezier(.32,.72,0,1); overflow-y:auto; box-shadow:-20px 0 50px rgba(0,0,0,0.4);}
+  .panel.active{transform:translateX(0);}
+  .panel-head{padding:24px 28px 16px; display:flex; justify-content:space-between; align-items:flex-start; position:sticky; top:0; background:var(--ivory); z-index:2;}
+  .panel-head h3{font-family:var(--serif); font-size:1.36rem; font-weight:600;}
+  .panel-head p{font-size:0.84rem; color:var(--ink-soft); margin-top:4px;}
+  .panel-close{font-size:1.4rem; color:var(--ink-soft); line-height:1; padding:4px 8px;}
+  .panel-body{padding:6px 28px 40px;}
+
+  .field{margin-bottom:17px;}
+  .field label{display:block; font-size:0.76rem; font-weight:600; letter-spacing:0.03em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px;}
+  .field input, .field select, .field textarea{width:100%; padding:11px 13px; border:1px solid rgba(43,18,32,0.2); border-radius:2px; background:#fff; font-family:var(--sans); font-size:0.93rem; color:var(--ink);}
+  .field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--gold); outline-offset:1px; border-color:var(--gold);}
+  .field textarea{resize:vertical; min-height:88px;}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .submit-btn{width:100%; background:var(--wine); color:var(--ivory); padding:14px; border-radius:2px; font-weight:600; font-size:0.96rem; margin-top:4px; transition:background .15s;}
+  .submit-btn:hover{background:var(--wine-deep);}
+  .submit-btn:disabled{opacity:0.6; cursor:not-allowed;}
+  .status-msg{margin-top:13px; padding:12px 14px; border-radius:2px; font-size:0.85rem; display:none;}
+  .status-msg.show{display:block;}
+  .status-msg.ok{background:rgba(31,92,67,0.1); color:var(--success); border:1px solid rgba(31,92,67,0.25);}
+  .status-msg.err{background:rgba(162,59,59,0.1); color:var(--error); border:1px solid rgba(162,59,59,0.25);}
+  .demo-flag{font-size:0.72rem; color:var(--ink-soft); background:rgba(201,162,39,0.15); border:1px dashed var(--gold); padding:8px 12px; border-radius:2px; margin:16px 0 4px;}
+
+  /* ============ FOOTER ============ */
+  footer{padding:44px 0 0;}
+  footer .wrap{display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px; align-items:center; padding:36px 28px;}
+  .footer-note{font-size:0.84rem; color:var(--ivory-dim); max-width:420px;}
+  .footer-links{display:flex; gap:20px; font-size:0.87rem;}
+  .footer-links a{text-decoration:none; opacity:0.8;}
+  .footer-links a:hover{opacity:1; color:var(--gold-soft);}
+
+  @media (max-width:600px){ .field-row{grid-template-columns:1fr;} header.hero{padding:56px 0 44px;} }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand"><span class="seal">A</span>Ama Events Co.</div>
+    <div class="nav-links"><a href="#packages">Packages</a><a href="#rentals">Rentals</a><a href="#contact">Contact</a></div>
+    <a class="nav-cta" href="#packages">Book Now</a>
+  </div>
+</nav>
+<div class="aso-stripe"></div>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">Port Harcourt, Rivers State</div>
+      <h1 class="display">Every celebration,<br><em>handled with care.</em></h1>
+      <p class="hero-sub">From weddings to naming ceremonies, we plan, decorate, and deliver — so you get to actually enjoy your own event. Browse a package below or request rentals on their own.</p>
+      <div class="hero-actions">
+        <a class="btn-primary" href="#packages">Browse packages</a>
+        <a class="btn-ghost" href="#rentals">Just need rentals →</a>
+      </div>
+      <div class="trust-note">Family-run · Serving Port Harcourt and Rivers State · Available Sun–Fri, on-site Saturdays</div>
+    </div>
+    <div class="hero-motif" id="hero-motif"></div>
+  </div>
+</header>
+
+<div class="wrap"><div class="aso-stripe thin"></div></div>
+
+<section class="section" id="packages">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-label">Event Packages</div>
+      <h2 class="section-title">Pick the occasion, we'll fill in the details</h2>
+      <p class="section-desc">Every package is a starting point — tell us your date, guest count, and vision, and we tailor it from there.</p>
+    </div>
+    <div class="grid" id="package-grid"></div>
+  </div>
+</section>
+
+<section class="section" id="rentals">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-label">Standalone Rentals</div>
+      <h2 class="section-title">No full planning needed? Just rent the pieces.</h2>
+      <p class="section-desc">Chairs, tents, sound — order exactly what you need, delivered to your venue.</p>
+    </div>
+    <div class="rental-list" id="rental-list"></div>
+  </div>
+</section>
+
+<footer id="contact">
+  <div class="aso-stripe"></div>
+  <div class="wrap">
+    <div class="footer-note">Ama Events Co. serves Port Harcourt and surrounding Rivers State. Interstate and destination events considered on request.</div>
+    <div class="footer-links"><a href="#">Instagram</a><a href="#">WhatsApp</a><a href="#">Facebook</a></div>
+  </div>
+</footer>
+
+<div class="overlay" id="overlay"></div>
+
+<div class="panel" id="event-panel">
+  <div class="panel-head">
+    <div><h3>Tell us about your event</h3><p>We'll call you back to confirm availability and pricing.</p></div>
+    <button class="panel-close" data-close>&times;</button>
+  </div>
+  <div class="panel-body">
+    <div class="demo-flag" id="event-demo-flag">Demo mode — this form logs to the console instead of hitting a live webhook. Set CONFIG.DEMO_MODE = false and CONFIG.EVENT_WEBHOOK_URL once your n8n instance is reachable.</div>
+    <form id="event-form">
+      <div class="field"><label for="ev-name">Full Name</label><input id="ev-name" name="full_name" required></div>
+      <div class="field-row">
+        <div class="field"><label for="ev-phone">Phone Number</label><input id="ev-phone" name="phone" type="tel" required></div>
+        <div class="field"><label for="ev-email">Email</label><input id="ev-email" name="email" type="email" required></div>
+      </div>
+      <div class="field"><label for="ev-type">Event Type</label>
+        <select id="ev-type" name="event_type" required>
+          <option value="">Select one</option><option>Wedding</option><option>Birthday</option>
+          <option>Naming Ceremony</option><option>Bridal Shower</option><option>Corporate Event</option>
+          <option>Surprise Package</option><option>Other</option>
+        </select>
+      </div>
+      <div class="field"><label for="ev-budget">Estimated Budget Range</label>
+        <select id="ev-budget" name="budget_range" required>
+          <option value="">Select one</option><option>Under ₦200,000</option><option>₦200,000 – ₦500,000</option>
+          <option>₦500,000 – ₦1,000,000</option><option>₦1,000,000 – ₦1,500,000</option>
+          <option>Above ₦1,500,000</option><option>Not sure yet</option>
+        </select>
+      </div>
+      <div class="field"><label for="ev-date">Event Date</label><input id="ev-date" name="event_date" type="date"></div>
+      <div class="field"><label for="ev-details">Tell us more about what you need</label>
+        <textarea id="ev-details" name="details" required placeholder="Guest count, theme, colors, anything you already have in mind..."></textarea>
+      </div>
+      <button class="submit-btn" type="submit">Send enquiry</button>
+      <div class="status-msg" id="event-status"></div>
+    </form>
+  </div>
+</div>
+
+<div class="panel" id="rental-panel">
+  <div class="panel-head">
+    <div><h3>Request a rental quote</h3><p>We'll confirm availability, pricing, and delivery.</p></div>
+    <button class="panel-close" data-close>&times;</button>
+  </div>
+  <div class="panel-body">
+    <div class="demo-flag" id="rental-demo-flag">Demo mode — this form logs to the console instead of hitting a live webhook. Set CONFIG.DEMO_MODE = false and CONFIG.RENTAL_WEBHOOK_URL once your n8n instance is reachable.</div>
+    <form id="rental-form">
+      <div class="field"><label for="rn-name">Full Name</label><input id="rn-name" name="full_name" required></div>
+      <div class="field-row">
+        <div class="field"><label for="rn-phone">Phone Number</label><input id="rn-phone" name="phone" type="tel" required></div>
+        <div class="field"><label for="rn-email">Email</label><input id="rn-email" name="email" type="email" required></div>
+      </div>
+      <div class="field"><label for="rn-item">Item Type</label>
+        <select id="rn-item" name="item_type" required>
+          <option value="">Select one</option><option>Chairs</option><option>Tables</option>
+          <option>Canopy/Tent</option><option>Generator</option><option>Plates & Cutlery</option>
+          <option>Sound Equipment</option><option>Multiple Items (see notes)</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="rn-qty">Quantity</label><input id="rn-qty" name="quantity" type="number" min="1" required></div>
+        <div class="field"><label for="rn-date">Date Needed</label><input id="rn-date" name="date_needed" type="date" required></div>
+      </div>
+      <div class="field"><label for="rn-location">Delivery Location</label><input id="rn-location" name="delivery_location" required placeholder="e.g. GRA Phase 2, Port Harcourt"></div>
+      <div class="field"><label for="rn-notes">Additional Notes</label><textarea id="rn-notes" name="notes" placeholder="Optional — anything else we should know"></textarea></div>
+      <button class="submit-btn" type="submit">Send rental request</button>
+      <div class="status-msg" id="rental-status"></div>
+    </form>
+  </div>
+</div>
+
+<script>
+/* ======================================================================
+   CONFIG — point these at your real n8n instance when it's live.
+   ====================================================================== */
+const CONFIG = {
+  DEMO_MODE: true,
+  EVENT_WEBHOOK_URL: "https://YOUR-N8N-HOST/webhook/event-booking",
+  RENTAL_WEBHOOK_URL: "https://YOUR-N8N-HOST/webhook/rental-booking",
+};
+
+/* ======================================================================
+   ICONOGRAPHY + PATTERNS
+   Each package gets: a base color, a tiled Ankara/adire-inspired
+   pattern (geometric, not photographic), and a hand-drawn-style
+   gold line icon. Swap the whole .stub-art svg for a real <img>
+   of Ama's own event photography whenever it's available — that
+   will always outperform illustration.
+   ====================================================================== */
+function patternDefs(id, kind, color) {
+  const tiles = {
+    dots: `<circle cx="4" cy="4" r="1.4" fill="${color}"/><circle cx="12" cy="12" r="1.4" fill="${color}"/>`,
+    triangles: `<path d="M0 12 L6 2 L12 12 Z" fill="none" stroke="${color}" stroke-width="0.8"/>`,
+    zigzag: `<path d="M0 4 L4 0 L8 4 L12 0 L16 4" fill="none" stroke="${color}" stroke-width="0.9"/>`,
+    petals: `<path d="M6 2 C8 4 8 8 6 10 C4 8 4 4 6 2 Z" fill="${color}" opacity="0.8"/>`,
+    grid: `<path d="M0 0 L0 12 M0 0 L12 0" stroke="${color}" stroke-width="0.6"/>`,
+    stars: `<path d="M6 1 L7 5 L11 6 L7 7 L6 11 L5 7 L1 6 L5 5 Z" fill="${color}"/>`
+  };
+  const size = kind === 'zigzag' ? 16 : 12;
+  return `<pattern id="${id}" width="${size}" height="${size}" patternUnits="userSpaceOnUse">${tiles[kind]}</pattern>`;
+}
+
+function packageArt(p) {
+  return `
+  <svg viewBox="0 0 400 172" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      ${patternDefs(p.patId, p.pattern, 'rgba(255,255,255,0.16)')}
+      <linearGradient id="${p.patId}-bg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="${p.c1}"/>
+        <stop offset="1" stop-color="${p.c2}"/>
+      </linearGradient>
+    </defs>
+    <rect width="400" height="172" fill="url(#${p.patId}-bg)"/>
+    <rect width="400" height="172" fill="url(#${p.patId})"/>
+    <g transform="translate(200,86)" stroke="${p.icon === 'fill' ? 'none' : '#F3DFA0'}" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      ${p.iconSvg}
+    </g>
+  </svg>`;
+}
+
+const ICONS = {
+  wedding: `<circle cx="-9" cy="4" r="15"/><circle cx="9" cy="4" r="15"/><path d="M-2 -18 Q0 -26 2 -18" stroke-width="2"/>`,
+  birthday: `<ellipse cx="-14" cy="-6" rx="11" ry="15" transform="rotate(-12 -14 -6)"/><ellipse cx="0" cy="-14" rx="11" ry="15"/><ellipse cx="14" cy="-6" rx="11" ry="15" transform="rotate(12 14 -6)"/><path d="M-14 9 L-6 24 M0 1 L0 24 M14 9 L6 24" stroke-width="1.6"/>`,
+  naming: `<path d="M-22 4 Q-22 22 0 22 Q22 22 22 4 Q10 12 0 4 Q-10 12 -22 4 Z"/><path d="M0 4 C -3 -6 2 -14 0 -24" stroke-width="2"/><path d="M0 -10 C 6 -14 10 -10 10 -6" stroke-width="1.6"/>`,
+  bridal: `<circle cx="0" cy="-2" r="20" stroke-dasharray="1 8" stroke-width="3.2" stroke-linecap="round"/><path d="M-7 6 L-7 20 M7 6 L7 20 M-10 20 L10 20" stroke-width="2"/><path d="M-7 6 Q0 14 7 6" stroke-width="2"/>`,
+  corporate: `<rect x="-20" y="-22" width="40" height="44" rx="1"/><path d="M-12 -12 L-12 -6 M-4 -12 L-4 -6 M4 -12 L4 -6 M12 -12 L12 -6 M-12 0 L-12 6 M-4 0 L-4 6 M4 0 L4 6 M12 0 L12 6" stroke-width="1.6"/>`,
+  surprise: `<rect x="-16" y="-6" width="32" height="28" rx="1"/><path d="M-16 6 L16 6 M0 -6 L0 22 M-16 -6 Q-16 -16 0 -6 Q16 -16 16 -6" stroke-width="2"/>`
+};
+
+const PACKAGES = [
+  { key:"Wedding", title:"Weddings", desc:"Decor, coordination, and vendor management for your big day.", price:"From ₦500,000",
+    c1:"#5C1030", c2:"#33091F", pattern:"dots", patId:"pat-wedding", iconSvg:ICONS.wedding },
+  { key:"Birthday", title:"Birthdays", desc:"Themed setups for milestone birthdays, kids' parties, and everything between.", price:"From ₦150,000",
+    c1:"#1B5540", c2:"#0F3325", pattern:"triangles", patId:"pat-birthday", iconSvg:ICONS.birthday },
+  { key:"Naming Ceremony", title:"Naming Ceremonies", desc:"Traditional decor and setup for the newest member of the family.", price:"From ₦150,000",
+    c1:"#B15A2E", c2:"#7A3A1B", pattern:"zigzag", patId:"pat-naming", iconSvg:ICONS.naming },
+  { key:"Bridal Shower", title:"Bridal Showers", desc:"Intimate, elegant setups for the bride-to-be and her circle.", price:"From ₦200,000",
+    c1:"#7A2E4E", c2:"#45102A", pattern:"petals", patId:"pat-bridal", iconSvg:ICONS.bridal },
+  { key:"Corporate Event", title:"Corporate Events", desc:"Product launches, staff functions, and client-facing gatherings.", price:"Custom quote",
+    c1:"#22303F", c2:"#101820", pattern:"grid", patId:"pat-corporate", iconSvg:ICONS.corporate },
+  { key:"Surprise Package", title:"Surprise Packages", desc:"Fast-turnaround surprise setups — proposals, reveals, small gatherings.", price:"From ₦150,000",
+    c1:"#8C4A24", c2:"#5C1030", pattern:"stars", patId:"pat-surprise", iconSvg:ICONS.surprise },
+];
+
+const RENTALS = [
+  { key:"Chairs", desc:"Padded or plastic, delivered and arranged", svg:`<path d="M4 3 v9 M16 3 v9 M4 12 h12 M6 12 v6 M14 12 v6" stroke="#E3C567" stroke-width="1.6" fill="none" stroke-linecap="round"/>` },
+  { key:"Tables", desc:"Round or rectangular, various sizes", svg:`<ellipse cx="10" cy="6" rx="8" ry="3" stroke="#E3C567" stroke-width="1.6" fill="none"/><path d="M4 6 v10 M16 6 v10" stroke="#E3C567" stroke-width="1.6"/>` },
+  { key:"Canopy/Tent", desc:"Weather cover for outdoor events", svg:`<path d="M2 10 L10 2 L18 10 Z" stroke="#E3C567" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M4 10 v8 M16 10 v8" stroke="#E3C567" stroke-width="1.6"/>` },
+  { key:"Generator", desc:"Backup power for the full event duration", svg:`<rect x="3" y="6" width="14" height="9" rx="1" stroke="#E3C567" stroke-width="1.6" fill="none"/><circle cx="7" cy="10.5" r="1.4" fill="#E3C567"/><path d="M11 8 h4 M11 11 h4 M11 13 h2" stroke="#E3C567" stroke-width="1.2"/>` },
+  { key:"Plates & Cutlery", desc:"Full table settings, any guest count", svg:`<circle cx="10" cy="10" r="7" stroke="#E3C567" stroke-width="1.6" fill="none"/><circle cx="10" cy="10" r="3" stroke="#E3C567" stroke-width="1"/>` },
+  { key:"Sound Equipment", desc:"Speakers and mic setup for toasts and announcements", svg:`<rect x="6" y="2" width="8" height="16" rx="1.5" stroke="#E3C567" stroke-width="1.6" fill="none"/><circle cx="10" cy="7" r="2" stroke="#E3C567" stroke-width="1.2"/><circle cx="10" cy="14" r="1.4" stroke="#E3C567" stroke-width="1.2"/>` },
+];
+
+/* hero motif: layered arch rings, echoing a decorated event canopy */
+document.getElementById('hero-motif').innerHTML = `
+  <svg viewBox="0 0 400 400" style="width:100%; height:100%;">
+    <defs>
+      <radialGradient id="archglow" cx="50%" cy="35%" r="60%">
+        <stop offset="0" stop-color="#E3C567" stop-opacity="0.22"/>
+        <stop offset="1" stop-color="#E3C567" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <circle cx="200" cy="200" r="180" fill="url(#archglow)"/>
+    <g fill="none" stroke="#C9A227" stroke-linecap="round">
+      <path d="M60 320 Q60 60 200 60 Q340 60 340 320" stroke-width="3"/>
+      <path d="M90 320 Q90 95 200 95 Q310 95 310 320" stroke-width="1.6" stroke-dasharray="1 10"/>
+      <path d="M40 320 Q40 40 200 40 Q360 40 360 320" stroke-width="1" opacity="0.5"/>
+    </g>
+    <g fill="#E3C567">
+      <circle cx="60" cy="320" r="4"/><circle cx="340" cy="320" r="4"/>
+      <circle cx="200" cy="60" r="5"/>
+      <circle cx="130" cy="70" r="2.6"/><circle cx="270" cy="70" r="2.6"/>
+      <circle cx="80" cy="130" r="2.6"/><circle cx="320" cy="130" r="2.6"/>
+    </g>
+    <g transform="translate(200,200)" fill="none" stroke="#F3DFA0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="-9" cy="4" r="15"/><circle cx="9" cy="4" r="15"/>
+    </g>
+  </svg>`;
+
+const grid = document.getElementById('package-grid');
+PACKAGES.forEach((p, i) => {
+  const card = document.createElement('div');
+  card.className = 'stub';
+  card.style.animationDelay = (i * 0.06) + 's';
+  card.innerHTML = `
+    <div class="stub-art">${packageArt(p)}</div>
+    <div class="aso-stripe"></div>
+    <div class="stub-body">
+      <div class="stub-kicker">Full Planning</div>
+      <div class="stub-title">${p.title}</div>
+      <div class="stub-desc">${p.desc}</div>
+      <div class="stub-meta">
+        <div class="stub-price">Starting at<strong>${p.price}</strong></div>
+        <button class="stub-btn" data-open="event" data-type="${p.key}">Book this</button>
+      </div>
+    </div>`;
+  grid.appendChild(card);
+});
+
+const rentalList = document.getElementById('rental-list');
+RENTALS.forEach(r => {
+  const row = document.createElement('div');
+  row.className = 'rental-row';
+  row.innerHTML = `
+    <svg viewBox="0 0 20 20">${r.svg}</svg>
+    <div><div class="rental-name">${r.key}</div><div class="rental-desc">${r.desc}</div></div>
+    <button class="rental-add" data-open="rental" data-type="${r.key}">Request quote</button>`;
+  rentalList.appendChild(row);
+});
+
+const overlay = document.getElementById('overlay');
+const eventPanel = document.getElementById('event-panel');
+const rentalPanel = document.getElementById('rental-panel');
+
+function openPanel(which, prefill) {
+  overlay.classList.add('active');
+  if (which === 'event') { eventPanel.classList.add('active'); if (prefill) document.getElementById('ev-type').value = prefill; }
+  else { rentalPanel.classList.add('active'); if (prefill) document.getElementById('rn-item').value = prefill; }
+  document.body.style.overflow = 'hidden';
+}
+function closeAll() {
+  overlay.classList.remove('active'); eventPanel.classList.remove('active'); rentalPanel.classList.remove('active');
+  document.body.style.overflow = '';
+}
+document.addEventListener('click', (e) => {
+  const opener = e.target.closest('[data-open]');
+  if (opener) { openPanel(opener.dataset.open, opener.dataset.type); return; }
+  if (e.target.closest('[data-close]') || e.target === overlay) closeAll();
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeAll(); });
+
+if (!CONFIG.DEMO_MODE) {
+  document.getElementById('event-demo-flag').style.display = 'none';
+  document.getElementById('rental-demo-flag').style.display = 'none';
+}
+
+async function submitForm({ formEl, statusEl, url, extraShape }) {
+  const submitBtn = formEl.querySelector('.submit-btn');
+  const data = Object.fromEntries(new FormData(formEl).entries());
+  const payload = extraShape ? extraShape(data) : data;
+  statusEl.className = 'status-msg';
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending...';
+  try {
+    if (CONFIG.DEMO_MODE) {
+      console.log('[DEMO] Would POST to', url, payload);
+      await new Promise(r => setTimeout(r, 600));
+    } else {
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (!res.ok) throw new Error('Request failed: ' + res.status);
+    }
+    statusEl.textContent = "Thanks — we've got your details and will follow up shortly.";
+    statusEl.classList.add('show', 'ok');
+    formEl.reset();
+    setTimeout(closeAll, 1600);
+  } catch (err) {
+    statusEl.textContent = "Something went wrong sending this — please try again or reach us on WhatsApp.";
+    statusEl.classList.add('show', 'err');
+    console.error(err);
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = formEl.id === 'event-form' ? 'Send enquiry' : 'Send rental request';
+  }
+}
+
+document.getElementById('event-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  submitForm({ formEl: e.target, statusEl: document.getElementById('event-status'), url: CONFIG.EVENT_WEBHOOK_URL });
+});
+document.getElementById('rental-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  submitForm({ formEl: e.target, statusEl: document.getElementById('rental-status'), url: CONFIG.RENTAL_WEBHOOK_URL, extraShape: (data) => ({ ...data, quantity: Number(data.quantity) }) });
+});
+</script>
+</body>
+</html>
