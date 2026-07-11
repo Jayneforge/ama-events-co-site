@@ -72,7 +72,6 @@
   }
   nav .wrap{display:flex; align-items:center; justify-content:space-between; padding:16px 28px;}
   
-  /* UPDATED LOGO DESIGN */
   .brand{display:flex; align-items:center; gap:12px; text-decoration:none;}
   .brand-logo-svg{width:36px; height:36px;}
   .brand-text{font-family:var(--serif); font-weight:600; font-size:1.35rem; letter-spacing:-0.02em;}
@@ -106,7 +105,6 @@
   .btn-ghost:hover{border-color:var(--gold-soft); background:rgba(201,162,39,0.08);}
   .trust-note{margin-top:28px; font-size:0.82rem; color:var(--ivory-dim); opacity:0.75; letter-spacing:0.01em;}
 
-  /* NEW SLIDESHOW DESIGN CONTAINER */
   .hero-slideshow-frame{
     position:relative; 
     width:100%; 
@@ -181,7 +179,17 @@
   .rental-row svg{width:22px; height:22px; opacity:0.85;}
   .rental-name{font-weight:600; font-size:0.98rem;}
   .rental-desc{font-size:0.83rem; color:var(--ivory-dim); margin-top:2px;}
-  .rental-add{border:1px solid var(--gold-soft); color:var(--gold-soft); padding:8px 16px; border-radius:2px; font-weight:600; font-size:0.8amp; transition:background .15s, color .15s;}
+  
+  /* TYPO FIXED HERE (0.8amp changed to 0.8rem) */
+  .rental-add{
+    border:1px solid var(--gold-soft); 
+    color:var(--gold-soft); 
+    padding:8px 16px; 
+    border-radius:2px; 
+    font-weight:600; 
+    font-size:0.8rem; 
+    transition:background .15s, color .15s;
+  }
   .rental-add:hover{background:var(--gold-soft); color:var(--wine-deep);}
 
   /* ============ BOOKING PANEL ============ */
@@ -225,7 +233,6 @@
 
 <nav>
   <div class="wrap">
-    <!-- NEW LOGO INTEGRATED HERE -->
     <a href="#" class="brand">
       <svg class="brand-logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="50" cy="50" r="46" stroke="#C9A227" stroke-width="3"/>
@@ -254,7 +261,6 @@
       <div class="trust-note">Family-run · Serving Port Harcourt and Rivers State · Available Sun–Fri, on-site Saturdays</div>
     </div>
     
-    <!-- NEW HERO IMAGE SLIDESHOW -->
     <div class="hero-slideshow-frame">
       <div class="hero-slideshow-inner" id="hero-slideshow">
         <img src="images/wedding.jpg" class="hero-slide active" alt="Luxury Wedding Decor Setup">
@@ -394,7 +400,6 @@ const RENTALS = [
   { key:"Sound Equipment", desc:"Speakers and mic setup for toasts and announcements", svg:`<rect x="6" y="2" width="8" height="16" rx="1.5" stroke="#E3C567" stroke-width="1.6" fill="none"/><circle cx="10" cy="7" r="2" stroke="#E3C567" stroke-width="1.2"/><circle cx="10" cy="14" r="1.4" stroke="#E3C567" stroke-width="1.2"/>` },
 ];
 
-/* AUTOMATIC HERO SLIDESHOW LOGIC */
 function initSlideshow() {
   const slides = document.querySelectorAll('.hero-slide');
   if(slides.length === 0) return;
@@ -404,7 +409,7 @@ function initSlideshow() {
     slides[currentIdx].classList.remove('active');
     currentIdx = (currentIdx + 1) % slides.length;
     slides[currentIdx].classList.add('active');
-  }, 4000); // Transitions to a new decoration every 4 seconds
+  }, 4000);
 }
 window.addEventListener('DOMContentLoaded', initSlideshow);
 
