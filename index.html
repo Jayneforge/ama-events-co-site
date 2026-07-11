@@ -50,11 +50,7 @@
 
   .wrap{max-width:1160px; margin:0 auto; padding:0 28px; position:relative; z-index:1;}
 
-  /* ============ ASO-OKE STRIPE — signature motif ============
-     A woven band of narrow color stripes, styled after aso-oke
-     cloth. Used as a structural divider throughout: it always
-     marks a transition between sections, the way a border strip
-     marks the edge of a wrapper. */
+  /* ============ ASO-OKE STRIPE ============ */
   .aso-stripe{
     height:7px; width:100%;
     background: repeating-linear-gradient(
@@ -75,14 +71,12 @@
     background:rgba(51,9,31,0.94); backdrop-filter:blur(8px);
   }
   nav .wrap{display:flex; align-items:center; justify-content:space-between; padding:16px 28px;}
-  .brand{font-family:var(--serif); font-weight:600; font-size:1.32rem; display:flex; align-items:center; gap:10px;}
-  .brand .seal{
-    width:30px; height:30px; border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, var(--gold-soft), var(--gold) 75%);
-    display:flex; align-items:center; justify-content:center;
-    font-family:var(--serif); font-size:0.9rem; color:var(--wine-deep); font-weight:700;
-    box-shadow:0 0 0 2px rgba(201,162,39,0.3); flex-shrink:0;
-  }
+  
+  /* UPDATED LOGO DESIGN */
+  .brand{display:flex; align-items:center; gap:12px; text-decoration:none;}
+  .brand-logo-svg{width:36px; height:36px;}
+  .brand-text{font-family:var(--serif); font-weight:600; font-size:1.35rem; letter-spacing:-0.02em;}
+
   .nav-links{display:flex; gap:32px; font-size:0.9rem; font-weight:500;}
   .nav-links a{text-decoration:none; opacity:0.85; border-bottom:1px solid transparent; padding-bottom:3px; transition:opacity .2s, border-color .2s;}
   .nav-links a:hover{opacity:1; border-color:var(--gold-soft);}
@@ -92,8 +86,13 @@
 
   /* ============ HERO ============ */
   header.hero{padding:80px 0 64px; position:relative; overflow:hidden;}
-  .hero-grid{display:grid; grid-template-columns:1.15fr 0.85fr; gap:40px; align-items:center;}
-  @media (max-width:900px){ .hero-grid{grid-template-columns:1fr;} }
+  .hero-grid{display:grid; grid-template-columns:1.1fr 0.9fr; gap:50px; align-items:center;}
+  @media (max-width:900px){ 
+    .hero-grid{grid-template-columns:1fr; text-align:center;} 
+    .eyebrow{justify-content:center;}
+    .hero-sub{margin:20px auto 0;}
+    .hero-actions{justify-content:center;}
+  }
 
   .eyebrow{font-size:0.76rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold-soft); font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:10px;}
   .eyebrow::before{content:""; width:26px; height:1px; background:var(--gold-soft);}
@@ -107,10 +106,39 @@
   .btn-ghost:hover{border-color:var(--gold-soft); background:rgba(201,162,39,0.08);}
   .trust-note{margin-top:28px; font-size:0.82rem; color:var(--ivory-dim); opacity:0.75; letter-spacing:0.01em;}
 
-  /* hero motif: layered arch built from concentric gold linework,
-     evoking a decorated event canopy/arch — the single physical
-     object most associated with Nigerian owambe celebrations */
-  .hero-motif{position:relative; aspect-ratio:1/1; max-width:400px; margin:0 auto;}
+  /* NEW SLIDESHOW DESIGN CONTAINER */
+  .hero-slideshow-frame{
+    position:relative; 
+    width:100%; 
+    aspect-ratio: 4/5; 
+    max-width: 440px; 
+    margin: 0 auto;
+    border: 1px solid rgba(201,162,39,0.3);
+    padding: 12px;
+    border-radius: var(--radius);
+    background: rgba(51,9,31,0.4);
+  }
+  .hero-slideshow-inner{
+    position:relative;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    border-radius:2px;
+  }
+  .hero-slide{
+    position:absolute;
+    inset:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    opacity:0;
+    transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+  }
+  .hero-slide.active{
+    opacity:1;
+    z-index: 2;
+  }
 
   /* ============ SECTIONS ============ */
   .section{padding:60px 0;}
@@ -122,15 +150,17 @@
   /* ============ PACKAGE CARDS ============ */
   .grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:26px;}
   .stub{
-    background:var(--ivory); color:var(--ink); border-radius:var(--radius); overflow:hidden;
+    background:#FCF8F2; color:var(--ink); border-radius:var(--radius); overflow:hidden;
     display:flex; flex-direction:column; box-shadow:0 14px 32px rgba(0,0,0,0.3);
-    opacity:0; animation:rise .6s ease forwards; transition:transform .25s ease, box-shadow .25s ease;
+    opacity:0; animation:rise .6s ease forwards; border: 1px solid rgba(69, 16, 42, 0.08);
+    transition:transform .25s ease, box-shadow .25s ease;
   }
   .stub:hover{transform:translateY(-6px); box-shadow:0 22px 44px rgba(0,0,0,0.38);}
   @keyframes rise{from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);}}
 
-  .stub-art{height:172px; position:relative;}
-  .stub-art svg{width:100%; height:100%; display:block;}
+  .stub-art{height:190px; position:relative; overflow:hidden;}
+  .stub-art img{width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.4s ease;}
+  .stub:hover .stub-art img{transform:scale(1.04);}
 
   .stub .aso-stripe{height:5px;}
 
@@ -151,7 +181,7 @@
   .rental-row svg{width:22px; height:22px; opacity:0.85;}
   .rental-name{font-weight:600; font-size:0.98rem;}
   .rental-desc{font-size:0.83rem; color:var(--ivory-dim); margin-top:2px;}
-  .rental-add{border:1px solid var(--gold-soft); color:var(--gold-soft); padding:8px 16px; border-radius:2px; font-weight:600; font-size:0.8rem; transition:background .15s, color .15s;}
+  .rental-add{border:1px solid var(--gold-soft); color:var(--gold-soft); padding:8px 16px; border-radius:2px; font-weight:600; font-size:0.8amp; transition:background .15s, color .15s;}
   .rental-add:hover{background:var(--gold-soft); color:var(--wine-deep);}
 
   /* ============ BOOKING PANEL ============ */
@@ -167,8 +197,8 @@
 
   .field{margin-bottom:17px;}
   .field label{display:block; font-size:0.76rem; font-weight:600; letter-spacing:0.03em; text-transform:uppercase; color:var(--ink-soft); margin-bottom:6px;}
-  .field input, .field select, .field textarea{width:100%; padding:11px 13px; border:1px solid rgba(43,18,32,0.2); border-radius:2px; background:#fff; font-family:var(--sans); font-size:0.93rem; color:var(--ink);}
-  .field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--gold); outline-offset:1px; border-color:var(--gold);}
+  .field input, .field select, .field textarea{width:100%; padding:11px 13px; border:1px solid rgba(43,18,32,0.2); border-radius:2px; background:#fff; font-family:var(--sans); font-size:0.93rem; color:var(--ink); transition: all 0.2s ease-in-out;}
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none; border-color:var(--gold); box-shadow: 0 0 0 3px rgba(201, 162, 39, 0.25);}
   .field textarea{resize:vertical; min-height:88px;}
   .field-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
   .submit-btn{width:100%; background:var(--wine); color:var(--ivory); padding:14px; border-radius:2px; font-weight:600; font-size:0.96rem; margin-top:4px; transition:background .15s;}
@@ -195,7 +225,16 @@
 
 <nav>
   <div class="wrap">
-    <div class="brand"><span class="seal">A</span>Ama Events Co.</div>
+    <!-- NEW LOGO INTEGRATED HERE -->
+    <a href="#" class="brand">
+      <svg class="brand-logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="46" stroke="#C9A227" stroke-width="3"/>
+        <circle cx="50" cy="50" r="38" stroke="#E3C567" stroke-width="1" stroke-dasharray="4 4" opacity="0.6"/>
+        <path d="M35 68L50 26L65 68" stroke="#FBF3E7" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M41 53H59" stroke="#C9A227" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <span class="brand-text">Ama Events Co.</span>
+    </a>
     <div class="nav-links"><a href="#packages">Packages</a><a href="#rentals">Rentals</a><a href="#contact">Contact</a></div>
     <a class="nav-cta" href="#packages">Book Now</a>
   </div>
@@ -214,7 +253,16 @@
       </div>
       <div class="trust-note">Family-run · Serving Port Harcourt and Rivers State · Available Sun–Fri, on-site Saturdays</div>
     </div>
-    <div class="hero-motif" id="hero-motif"></div>
+    
+    <!-- NEW HERO IMAGE SLIDESHOW -->
+    <div class="hero-slideshow-frame">
+      <div class="hero-slideshow-inner" id="hero-slideshow">
+        <img src="images/wedding.jpg" class="hero-slide active" alt="Luxury Wedding Decor Setup">
+        <img src="images/hero-slide1.jpg" class="hero-slide" alt="Luxury Walkway Staging">
+        <img src="images/hero-slide2.jpg" class="hero-slide" alt="Luxury Table Details">
+      </div>
+    </div>
+
   </div>
 </header>
 
@@ -322,76 +370,19 @@
 </div>
 
 <script>
-/* ======================================================================
-   CONFIG — point these at your real n8n instance when it's live.
-   ====================================================================== */
 const CONFIG = {
   DEMO_MODE: true,
   EVENT_WEBHOOK_URL: "https://YOUR-N8N-HOST/webhook/event-booking",
   RENTAL_WEBHOOK_URL: "https://YOUR-N8N-HOST/webhook/rental-booking",
 };
 
-/* ======================================================================
-   ICONOGRAPHY + PATTERNS
-   Each package gets: a base color, a tiled Ankara/adire-inspired
-   pattern (geometric, not photographic), and a hand-drawn-style
-   gold line icon. Swap the whole .stub-art svg for a real <img>
-   of Ama's own event photography whenever it's available — that
-   will always outperform illustration.
-   ====================================================================== */
-function patternDefs(id, kind, color) {
-  const tiles = {
-    dots: `<circle cx="4" cy="4" r="1.4" fill="${color}"/><circle cx="12" cy="12" r="1.4" fill="${color}"/>`,
-    triangles: `<path d="M0 12 L6 2 L12 12 Z" fill="none" stroke="${color}" stroke-width="0.8"/>`,
-    zigzag: `<path d="M0 4 L4 0 L8 4 L12 0 L16 4" fill="none" stroke="${color}" stroke-width="0.9"/>`,
-    petals: `<path d="M6 2 C8 4 8 8 6 10 C4 8 4 4 6 2 Z" fill="${color}" opacity="0.8"/>`,
-    grid: `<path d="M0 0 L0 12 M0 0 L12 0" stroke="${color}" stroke-width="0.6"/>`,
-    stars: `<path d="M6 1 L7 5 L11 6 L7 7 L6 11 L5 7 L1 6 L5 5 Z" fill="${color}"/>`
-  };
-  const size = kind === 'zigzag' ? 16 : 12;
-  return `<pattern id="${id}" width="${size}" height="${size}" patternUnits="userSpaceOnUse">${tiles[kind]}</pattern>`;
-}
-
-function packageArt(p) {
-  return `
-  <svg viewBox="0 0 400 172" preserveAspectRatio="xMidYMid slice">
-    <defs>
-      ${patternDefs(p.patId, p.pattern, 'rgba(255,255,255,0.16)')}
-      <linearGradient id="${p.patId}-bg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="${p.c1}"/>
-        <stop offset="1" stop-color="${p.c2}"/>
-      </linearGradient>
-    </defs>
-    <rect width="400" height="172" fill="url(#${p.patId}-bg)"/>
-    <rect width="400" height="172" fill="url(#${p.patId})"/>
-    <g transform="translate(200,86)" stroke="${p.icon === 'fill' ? 'none' : '#F3DFA0'}" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round">
-      ${p.iconSvg}
-    </g>
-  </svg>`;
-}
-
-const ICONS = {
-  wedding: `<circle cx="-9" cy="4" r="15"/><circle cx="9" cy="4" r="15"/><path d="M-2 -18 Q0 -26 2 -18" stroke-width="2"/>`,
-  birthday: `<ellipse cx="-14" cy="-6" rx="11" ry="15" transform="rotate(-12 -14 -6)"/><ellipse cx="0" cy="-14" rx="11" ry="15"/><ellipse cx="14" cy="-6" rx="11" ry="15" transform="rotate(12 14 -6)"/><path d="M-14 9 L-6 24 M0 1 L0 24 M14 9 L6 24" stroke-width="1.6"/>`,
-  naming: `<path d="M-22 4 Q-22 22 0 22 Q22 22 22 4 Q10 12 0 4 Q-10 12 -22 4 Z"/><path d="M0 4 C -3 -6 2 -14 0 -24" stroke-width="2"/><path d="M0 -10 C 6 -14 10 -10 10 -6" stroke-width="1.6"/>`,
-  bridal: `<circle cx="0" cy="-2" r="20" stroke-dasharray="1 8" stroke-width="3.2" stroke-linecap="round"/><path d="M-7 6 L-7 20 M7 6 L7 20 M-10 20 L10 20" stroke-width="2"/><path d="M-7 6 Q0 14 7 6" stroke-width="2"/>`,
-  corporate: `<rect x="-20" y="-22" width="40" height="44" rx="1"/><path d="M-12 -12 L-12 -6 M-4 -12 L-4 -6 M4 -12 L4 -6 M12 -12 L12 -6 M-12 0 L-12 6 M-4 0 L-4 6 M4 0 L4 6 M12 0 L12 6" stroke-width="1.6"/>`,
-  surprise: `<rect x="-16" y="-6" width="32" height="28" rx="1"/><path d="M-16 6 L16 6 M0 -6 L0 22 M-16 -6 Q-16 -16 0 -6 Q16 -16 16 -6" stroke-width="2"/>`
-};
-
 const PACKAGES = [
-  { key:"Wedding", title:"Weddings", desc:"Decor, coordination, and vendor management for your big day.", price:"From ₦500,000",
-    c1:"#5C1030", c2:"#33091F", pattern:"dots", patId:"pat-wedding", iconSvg:ICONS.wedding },
-  { key:"Birthday", title:"Birthdays", desc:"Themed setups for milestone birthdays, kids' parties, and everything between.", price:"From ₦150,000",
-    c1:"#1B5540", c2:"#0F3325", pattern:"triangles", patId:"pat-birthday", iconSvg:ICONS.birthday },
-  { key:"Naming Ceremony", title:"Naming Ceremonies", desc:"Traditional decor and setup for the newest member of the family.", price:"From ₦150,000",
-    c1:"#B15A2E", c2:"#7A3A1B", pattern:"zigzag", patId:"pat-naming", iconSvg:ICONS.naming },
-  { key:"Bridal Shower", title:"Bridal Showers", desc:"Intimate, elegant setups for the bride-to-be and her circle.", price:"From ₦200,000",
-    c1:"#7A2E4E", c2:"#45102A", pattern:"petals", patId:"pat-bridal", iconSvg:ICONS.bridal },
-  { key:"Corporate Event", title:"Corporate Events", desc:"Product launches, staff functions, and client-facing gatherings.", price:"Custom quote",
-    c1:"#22303F", c2:"#101820", pattern:"grid", patId:"pat-corporate", iconSvg:ICONS.corporate },
-  { key:"Surprise Package", title:"Surprise Packages", desc:"Fast-turnaround surprise setups — proposals, reveals, small gatherings.", price:"From ₦150,000",
-    c1:"#8C4A24", c2:"#5C1030", pattern:"stars", patId:"pat-surprise", iconSvg:ICONS.surprise },
+  { key:"Wedding", title:"Weddings", desc:"Decor, coordination, and vendor management for your big day.", price:"From ₦500,000", img: "images/wedding.jpg" },
+  { key:"Birthday", title:"Birthdays", desc:"Themed setups for milestone birthdays, kids' parties, and everything between.", price:"From ₦150,000", img: "images/birthday.jpg" },
+  { key:"Naming Ceremony", title:"Naming Ceremonies", desc:"Traditional decor and setup for the newest member of the family.", price:"From ₦150,000", img: "images/naming.jpg" },
+  { key:"Bridal Shower", title:"Bridal Showers", desc:"Intimate, elegant setups for the bride-to-be and her circle.", price:"From ₦200,000", img: "images/bridal.jpg" },
+  { key:"Corporate Event", title:"Corporate Events", desc:"Product launches, staff functions, and client-facing gatherings.", price:"Custom quote", img: "images/corporate.jpg" },
+  { key:"Surprise Package", title:"Surprise Packages", desc:"Fast-turnaround surprise setups — proposals, reveals, small gatherings.", price:"From ₦150,000", img: "images/surprise.jpg" },
 ];
 
 const RENTALS = [
@@ -403,31 +394,19 @@ const RENTALS = [
   { key:"Sound Equipment", desc:"Speakers and mic setup for toasts and announcements", svg:`<rect x="6" y="2" width="8" height="16" rx="1.5" stroke="#E3C567" stroke-width="1.6" fill="none"/><circle cx="10" cy="7" r="2" stroke="#E3C567" stroke-width="1.2"/><circle cx="10" cy="14" r="1.4" stroke="#E3C567" stroke-width="1.2"/>` },
 ];
 
-/* hero motif: layered arch rings, echoing a decorated event canopy */
-document.getElementById('hero-motif').innerHTML = `
-  <svg viewBox="0 0 400 400" style="width:100%; height:100%;">
-    <defs>
-      <radialGradient id="archglow" cx="50%" cy="35%" r="60%">
-        <stop offset="0" stop-color="#E3C567" stop-opacity="0.22"/>
-        <stop offset="1" stop-color="#E3C567" stop-opacity="0"/>
-      </radialGradient>
-    </defs>
-    <circle cx="200" cy="200" r="180" fill="url(#archglow)"/>
-    <g fill="none" stroke="#C9A227" stroke-linecap="round">
-      <path d="M60 320 Q60 60 200 60 Q340 60 340 320" stroke-width="3"/>
-      <path d="M90 320 Q90 95 200 95 Q310 95 310 320" stroke-width="1.6" stroke-dasharray="1 10"/>
-      <path d="M40 320 Q40 40 200 40 Q360 40 360 320" stroke-width="1" opacity="0.5"/>
-    </g>
-    <g fill="#E3C567">
-      <circle cx="60" cy="320" r="4"/><circle cx="340" cy="320" r="4"/>
-      <circle cx="200" cy="60" r="5"/>
-      <circle cx="130" cy="70" r="2.6"/><circle cx="270" cy="70" r="2.6"/>
-      <circle cx="80" cy="130" r="2.6"/><circle cx="320" cy="130" r="2.6"/>
-    </g>
-    <g transform="translate(200,200)" fill="none" stroke="#F3DFA0" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="-9" cy="4" r="15"/><circle cx="9" cy="4" r="15"/>
-    </g>
-  </svg>`;
+/* AUTOMATIC HERO SLIDESHOW LOGIC */
+function initSlideshow() {
+  const slides = document.querySelectorAll('.hero-slide');
+  if(slides.length === 0) return;
+  let currentIdx = 0;
+  
+  setInterval(() => {
+    slides[currentIdx].classList.remove('active');
+    currentIdx = (currentIdx + 1) % slides.length;
+    slides[currentIdx].classList.add('active');
+  }, 4000); // Transitions to a new decoration every 4 seconds
+}
+window.addEventListener('DOMContentLoaded', initSlideshow);
 
 const grid = document.getElementById('package-grid');
 PACKAGES.forEach((p, i) => {
@@ -435,7 +414,9 @@ PACKAGES.forEach((p, i) => {
   card.className = 'stub';
   card.style.animationDelay = (i * 0.06) + 's';
   card.innerHTML = `
-    <div class="stub-art">${packageArt(p)}</div>
+    <div class="stub-art">
+      <img src="${p.img}" alt="${p.title}">
+    </div>
     <div class="aso-stripe"></div>
     <div class="stub-body">
       <div class="stub-kicker">Full Planning</div>
