@@ -377,9 +377,9 @@
 
 <script>
 const CONFIG = {
-  DEMO_MODE: true,
-  EVENT_WEBHOOK_URL: "https://YOUR-N8N-HOST/webhook/event-booking",
-  RENTAL_WEBHOOK_URL: "https://YOUR-N8N-HOST/webhook/rental-booking",
+  DEMO_MODE: false,
+  EVENT_WEBHOOK_URL: "https://paver-helpline-directive.ngrok-free.dev/webhook/event-booking",
+  RENTAL_WEBHOOK_URL: "https://paver-helpline-directive.ngrok-free.dev/webhook/rental-booking",
 };
 
 const PACKAGES = [
@@ -484,7 +484,7 @@ async function submitForm({ formEl, statusEl, url, extraShape }) {
       console.log('[DEMO] Would POST to', url, payload);
       await new Promise(r => setTimeout(r, 600));
     } else {
-      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' }, body: JSON.stringify(payload) });
       if (!res.ok) throw new Error('Request failed: ' + res.status);
     }
     statusEl.textContent = "Thanks — we've got your details and will follow up shortly.";
