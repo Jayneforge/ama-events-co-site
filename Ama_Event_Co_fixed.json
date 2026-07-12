@@ -1,0 +1,1870 @@
+{
+  "name": "Ama Event Co.",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "channel-inquiry",
+        "options": {}
+      },
+      "id": "5e98ae28-cb85-4ede-8f3c-616043dcfce4",
+      "name": "Webhook (Channel Message)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -2528,
+        256
+      ],
+      "webhookId": "channel-inquiry-webhook-id"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appnEGvMpYTER4nU5",
+          "mode": "list",
+          "cachedResultName": "LocalHost Sales Lead for Ama",
+          "cachedResultUrl": "https://airtable.com/appnEGvMpYTER4nU5"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblaKWwQjtNlJ2LlH",
+          "mode": "list",
+          "cachedResultName": "Sales Pipeline and Enquiries",
+          "cachedResultUrl": "https://airtable.com/appnEGvMpYTER4nU5/tblaKWwQjtNlJ2LlH"
+        },
+        "filterByFormula": "=={{ \"TRIM({Sender_ID}) = '\" + $json.body.body.sender_id.trim() + \"'\" }}",
+        "returnAll": false,
+        "limit": 5,
+        "options": {}
+      },
+      "id": "cd9b826b-2837-4b36-a5b6-5b643e90d4be",
+      "name": "Search Prior Contact",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -2320,
+        256
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "uMXPFgwIobsRsoEq",
+          "name": "Airtable Personal Access Token account"
+        }
+      },
+      "notes": "alwaysOutputData MUST be on (Settings tab). Limit raised from 1 to 5 so 'Check Returning Contact' can build real conversation history, not just a single category label — needed so the AI can resolve references like 'send it over' to what was discussed earlier."
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst validItems = items.filter(item => item.json.fields !== undefined);\nconst isReturning = validItems.length > 0;\n\nlet conversationHistory = 'None \\u2014 this is a first-time contact.';\nlet priorCategory = null;\nlet shouldGreet = true; // default: greet a first-time contact\n\nif (isReturning) {\n  const sorted = [...validItems].sort((a, b) => {\n    return new Date(a.json.createdTime) - new Date(b.json.createdTime);\n  });\n\n  conversationHistory = sorted.map(item => {\n    const f = item.json.fields;\n    const when = item.json.createdTime ? new Date(item.json.createdTime).toLocaleString() : 'unknown time';\n    return '[' + when + '] Customer said: \\\"' + (f.Message || '') + '\\\" (categorized ' + (f.Category || 'n/a') + ')';\n  }).join('\\n');\n\n  priorCategory = sorted[sorted.length - 1].json.fields.Category || null;\n\n  const lastContactTime = new Date(sorted[sorted.length - 1].json.createdTime);\n  const now = new Date();\n  const hoursSinceLastContact = (now - lastContactTime) / (1000 * 60 * 60);\n  shouldGreet = hoursSinceLastContact >= 3;\n}\n\nreturn [{\n  json: {\n    is_returning_contact: isReturning,\n    prior_category: priorCategory,\n    conversation_history: conversationHistory,\n    should_greet: shouldGreet\n  }\n}];"
+      },
+      "id": "d8bcef04-5477-4dc1-9047-8e36ade9c038",
+      "name": "Check Returning Contact",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1856,
+        256
+      ],
+      "notes": "Fixed: previously only passed a single prior_category label downstream, with no actual message content — the AI had no way to resolve references like 'send it over' to a prior message. Now builds a real conversation_history string from up to 5 prior logged messages, sorted chronologically. Always outputs exactly ONE item (aggregated), regardless of how many prior messages matched, so downstream single-item expressions still work correctly."
+    },
+    {
+      "parameters": {
+        "base": {
+          "__rl": true,
+          "value": "appnEGvMpYTER4nU5",
+          "mode": "list",
+          "cachedResultName": "LocalHost Sales Lead for Ama",
+          "cachedResultUrl": "https://airtable.com/appnEGvMpYTER4nU5"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblvhSjB7qWsVgtXk",
+          "mode": "list",
+          "cachedResultName": "Knowledge Base Files",
+          "cachedResultUrl": "https://airtable.com/appnEGvMpYTER4nU5/tblvhSjB7qWsVgtXk"
+        },
+        "id": "recFP9UhvyYOEvbqo",
+        "options": {}
+      },
+      "id": "f7c9d609-aed9-464d-affc-f1aa104a74a1",
+      "name": "Get Business Knowledge Base (Triage)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -1664,
+        256
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "uMXPFgwIobsRsoEq",
+          "name": "Airtable Personal Access Token account"
+        }
+      },
+      "notes": "If Ama says no to destination/international weddings (or any new edge case comes up), update this doc directly — the KB is the fix, not the workflow."
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "id": "3ae16d0f-a50c-45d5-89fb-037f34d3201e",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -1472,
+        832
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "yIl6w55Rnhnye3ed",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"category\": \"EDGE_CASE\",\n  \"response_type\": \"escalate\",\n  \"form_type\": \"event_enquiry\",\n  \"quick_reply\": \"That's a great question - I want to check with Ama directly since it's outside our usual packages. Could you share a bit more detail plus your name, phone, and email here so she can get back to you personally: {{FORM_LINK}}\"\n}"
+      },
+      "id": "b262310f-9dd2-4290-9c55-e6a3ac366dc0",
+      "name": "Quick Triage Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -1312,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Webhook (Channel Message)').item.json.body.body.message }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=BUSINESS KNOWLEDGE BASE (use ONLY this to answer what Ama Events Co. can or cannot do — never guess):\n{{ $json.Content }}\n\nSENDER NAME: {{ $('Webhook (Channel Message)').item.json.body.body.sender_name }}\n\nCONTACT HISTORY (most recent last):\n{{ $('Check Returning Contact').item.json.conversation_history }}\n\nIMPORTANT: If this history is not empty, treat the current message as a CONTINUATION of that conversation, not a fresh one. Resolve pronouns and references (\\\"send it over\\\", \\\"yes please\\\", \\\"that one\\\", \\\"the second option\\\") against what was actually discussed above — do not guess or ignore them.\n\nGREETING RULE: {{ $('Check Returning Contact').item.json.should_greet ? 'Greet this contact (use SENDER NAME if natural) — either this is their first message, or it has been 3+ hours since their last message, so a fresh greeting is appropriate.' : 'Do NOT greet — they messaged within the last 3 hours and this is an ongoing conversation. Skip straight to responding to their current message like a real person continuing a chat.' }}\n\nYou are a first-response triage assistant for Ama Events Co., a small event planning, decor, and rental business based in Port Harcourt, Rivers State, Nigeria. You receive short inbound messages from Instagram DMs, Instagram comments, Facebook comments, and WhatsApp. The owner cannot monitor these live — your job is to send an immediate, warm, on-brand reply within the message's own channel, decide whether this looks like a genuine enquiry worth capturing more details for, and decide whether the message can simply be answered outright.\n\nRules:\n- category LOW = ONLY a pure compliment or casual remark with NO discernible question or request. If the message contains ANY question — even a simple yes/no or pricing question — it is NOT LOW. When unsure, default to MEDIUM rather than LOW.\n- category HIGH or MEDIUM = message asks something real: a factual/availability question the knowledge base can answer, OR a genuine booking/event/rental enquiry with details (date, guest count, item, package). Use HIGH when there's clear booking intent or urgency, MEDIUM otherwise.\n- category EDGE_CASE = message is a genuine enquiry, but asks about something the knowledge base does not address anywhere, even via its vague-inquiry scripts. If the knowledge base gives you a scripted way to answer, that is NOT an edge case — follow the script.\n- response_type must be exactly one of: \"direct_answer\", \"capture_lead\", \"escalate\", \"acknowledge_only\".\n  - Use \"direct_answer\" when the knowledge base can fully and confidently answer the question as asked. quick_reply gives the real answer directly and warmly. Do NOT push a form unless moving forward would require the customer to share event-specific details.\n  - Use \"capture_lead\" when the message expresses actual intent to book/rent (a date, guest count, specific package or items, or an explicit request to book/rent).\n  - Use \"escalate\" for EDGE_CASE messages — be honest it needs Ama's personal input, but still ask for the form.\n  - Use \"acknowledge_only\" for LOW category — short warm acknowledgment, no form.\n  - If CONTACT HISTORY shows this is a returning contact whose prior enquiry was already HIGH, MEDIUM, or EDGE_CASE, do NOT repeat the form pitch for the same request — use \"direct_answer\" or \"acknowledge_only\" instead of \"capture_lead\", and have quick_reply simply acknowledge Ama already has their details and will follow up, unless this new message clearly introduces a new, different request.\n- form_type must be exactly one of: \"event_enquiry\", \"rental_only\", \"none\".\n  - Use \"rental_only\" when the request is ONLY about renting standalone items (chairs, tables, canopies, generators, plates/cutlery, sound equipment, tents) with no full event planning or decor package involved. When form_type is \"rental_only\" and response_type is \"capture_lead\", quick_reply must include the exact placeholder text [[RENTAL_FORM_LINK]] instead of [[FORM_LINK]].\n  - Use \"event_enquiry\" for anything involving full event planning, decor, or a themed package. When form_type is \"event_enquiry\" and response_type is \"capture_lead\" or \"escalate\", quick_reply must include the exact placeholder text [[FORM_LINK]].\n  - Use \"none\" when response_type is \"direct_answer\" or \"acknowledge_only\". Never invent a URL — only use the exact placeholder text specified, and only when actually needed.\n- Keep quick_reply under 3 sentences.\n- Never invent details not present in the message, and never invent a capability, price, or travel policy that isn't in the knowledge base above.\n\nRespond only in the required JSON format."
+            },
+            {
+              "message": "- GREETING: If CONTACT HISTORY indicates this is a first-time contact, quick_reply MUST open with a brief, warm greeting using SENDER NAME if available (e.g., \"Hi Chidi!\" or \"Hi there!\") before anything else. If this is a returning contact, skip the greeting entirely — respond directly, no re-introduction."
+            }
+          ]
+        }
+      },
+      "id": "0d4f7107-cece-4a17-b889-142b32ce6dbd",
+      "name": "AI Quick Triage",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        -1472,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.output.category }}",
+              "operator": {
+                "operation": "equals",
+                "type": "string"
+              },
+              "rightValue": "LOW",
+              "id": "low-cat-condition-1"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f84451a4-f03d-4ad1-b3e6-5e0aefe7b762",
+      "name": "IF Category is LOW",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -736,
+        -656
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appnEGvMpYTER4nU5",
+          "mode": "list",
+          "cachedResultName": "LocalHost Sales Lead for Ama",
+          "cachedResultUrl": "https://airtable.com/appnEGvMpYTER4nU5"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblrbr2MHjmslcLo8",
+          "mode": "list",
+          "cachedResultName": "Sales Pipeline and Enquiries - Low leads",
+          "cachedResultUrl": "https://airtable.com/appnEGvMpYTER4nU5/tblrbr2MHjmslcLo8"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Webhook (Channel Message)').item.json.body.body.sender_name}}",
+            "Message": "={{ $('Webhook (Channel Message)').item.json.body.body.message }}",
+            "Date": "={{ $now.toISO() }}",
+            "Lead_Score": 0
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Lead_Score",
+              "displayName": "Lead_Score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Event_Type",
+              "displayName": "Event_Type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Intent_Summary",
+              "displayName": "Intent_Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Event_Details",
+              "displayName": "Event_Details",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Budget_Signal",
+              "displayName": "Budget_Signal",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Red_Flags",
+              "displayName": "Red_Flags",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Next_Step",
+              "displayName": "Next_Step",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Callback_Window",
+              "displayName": "Callback_Window",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "540116e1-b984-40b9-b5d8-cc271f6c1eba",
+      "name": "Log Low-Priority Comment",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -480,
+        -800
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "uMXPFgwIobsRsoEq",
+          "name": "Airtable Personal Access Token account"
+        }
+      },
+      "notes": "Create a lightweight table (e.g. 'Low_Priority_Log') first, then swap the table ID above."
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appnEGvMpYTER4nU5",
+          "mode": "list",
+          "cachedResultName": "LocalHost Sales Lead for Ama",
+          "cachedResultUrl": "https://airtable.com/appnEGvMpYTER4nU5"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblaKWwQjtNlJ2LlH",
+          "mode": "list",
+          "cachedResultName": "Sales Pipeline and Enquiries",
+          "cachedResultUrl": "https://airtable.com/appnEGvMpYTER4nU5/tblaKWwQjtNlJ2LlH"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Message": "={{ $('Webhook (Channel Message)').item.json.body.body.message }}",
+            "Category": "={{ $json.output.category }}",
+            "Name": "={{ $('Webhook (Channel Message)').item.json.body.body.sender_name.trim() }} ",
+            "Phone": "",
+            "Email": "",
+            "Event_Type": "",
+            "Date": "={{ $now.toISO() }}",
+            "Red_Flags": "=",
+            "Sender_ID": "={{ $('Webhook (Channel Message)').item.json.body.body.sender_id.trim() }} ",
+            "Intent_Summary": "=",
+            "channel": "={{ $('Webhook (Channel Message)').item.json.body.channel.trim() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Sender_ID",
+              "displayName": "Sender_ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Category",
+              "displayName": "Category",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Event_Type",
+              "displayName": "Event_Type",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Intent_Summary",
+              "displayName": "Intent_Summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Event_Details",
+              "displayName": "Event_Details",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Budget_Signal",
+              "displayName": "Budget_Signal",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Red_Flags",
+              "displayName": "Red_Flags",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Next_Step",
+              "displayName": "Next_Step",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Callback_Window",
+              "displayName": "Callback_Window",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "c959e7b8-4c50-4854-a191-8df3fd211cf3",
+      "name": "Log Raw Inquiry",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -464,
+        -528
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "uMXPFgwIobsRsoEq",
+          "name": "Airtable Personal Access Token account"
+        }
+      },
+      "notes": "Fixed: Message field was concatenating the same value with a dead reference to a nonexistent event-form field (this is the channel-message webhook, not the form webhook — no 'Tell us more...' field exists here). Date was pulling a nonexistent 'Event Date' field, meaning every row got Date=undefined — which silently broke chronological sorting in Check Returning Contact, since undefined dates all sort as equal. Date now uses the actual inquiry timestamp. Phone/Email/Event_Type left blank since this data genuinely isn't available at channel-message stage — it only exists once/if the customer fills the form."
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Webhook (Channel Message)').item.json.body.channel }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "whatsapp",
+                    "id": "6cf7dcc2-d070-4c64-9383-2a31f3d1681d"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Webhook (Channel Message)').item.json.body.channel }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "instagram_dm",
+                    "id": "248e96d1-415c-4a4e-86e3-d8beabb07c97"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('Webhook (Channel Message)').item.json.body.channel }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "instagram_comment",
+                    "id": "cc8cc684-1e44-4846-afd2-b5305b287eff"
+                  },
+                  {
+                    "leftValue": "={{ $('Webhook (Channel Message)').item.json.body.channel }}",
+                    "operator": {
+                      "operation": "equals",
+                      "type": "string"
+                    },
+                    "rightValue": "facebook_comment",
+                    "id": "982e04d4-0384-4c9b-8f2b-dbce84495c5e"
+                  }
+                ],
+                "combinator": "or"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Unhandled Channel"
+        }
+      },
+      "id": "0439a891-63dc-4872-88fb-4e31a0ce025d",
+      "name": "Route by Channel",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -720,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.output.category }}",
+              "operator": {
+                "operation": "equals",
+                "type": "string"
+              },
+              "rightValue": "EDGE_CASE",
+              "id": "8bbddcfe-c8f1-410b-9f2b-21d36bf9814f"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0df4f967-f137-4808-a52f-23bd23600154",
+      "name": "IF Category is Edge Case",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -704,
+        768
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v20.0/REPLACE_WITH_PHONE_NUMBER_ID/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "options": {
+          "timeout": 10000
+        },
+        "jsonBody": "={{ JSON.stringify({ messaging_product: 'whatsapp', to: $('Webhook (Channel Message)').item.json.body.body.sender_id, type: 'text', text: { body: $('AI Quick Triage').item.json.output.quick_reply.replace('[[FORM_LINK]]', 'https://ama-events-co-site.vercel.app/#packages').replace('[[RENTAL_FORM_LINK]]', 'https://ama-events-co-site.vercel.app/#rentals') } }) }}"
+      },
+      "id": "cc0908f2-1dfc-4fae-9f07-ca461f4c76d7",
+      "name": "Reply via WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -80,
+        -208
+      ],
+      "notes": "Fixed: this node had sendBody=true but no jsonBody at all, so it was sending empty requests. Added the actual message payload, using WhatsApp Cloud API's real message shape (messaging_product/to/type/text.body), not the Messenger-style shape the other two reply nodes use — WhatsApp's payload format is different from Instagram/FB Graph API calls even though they share a base URL pattern.",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v20.0/me/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ recipient: { id: $('Webhook (Channel Message)').item.json.body.body.sender_id }, message: { text: $('AI Quick Triage').item.json.output.quick_reply.replace('[[FORM_LINK]]', 'https://ama-events-co-site.vercel.app/#packages').replace('[[RENTAL_FORM_LINK]]', 'https://ama-events-co-site.vercel.app/#rentals') } }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "bd924770-41ff-4b85-b354-06e87e65c774",
+      "name": "Reply via Instagram DM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -80,
+        128
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v20.0/{{ $('Webhook (Channel Message)').item.json.body.comment_id }}/private_replies",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ message: $('AI Quick Triage').item.json.output.quick_reply.replace('[[FORM_LINK]]', 'https://ama-events-co-site.vercel.app/#packages').replace('[[RENTAL_FORM_LINK]]', 'https://ama-events-co-site.vercel.app/#rentals') }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "c88f3bd6-9a44-46bc-83f7-e715a1dd6571",
+      "name": "Reply via Comment (Private Reply)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -64,
+        480
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "chatId": "6400591434",
+        "text": "=Edge case — needs your judgment\n\nChannel: {{ $('Webhook (Channel Message)').item.json.body.body.channel }}\nFrom:{{ $('Webhook (Channel Message)').item.json.body.body.sender_name }} \nMessage:{{ $('Webhook (Channel Message)').item.json.body.body.message }}\n\nThe AI wasn't confident this falls within your listed services/policies — might be worth jumping into this one yourself.",
+        "additionalFields": {}
+      },
+      "id": "80365a87-2985-4876-96fa-b273b8d1914d",
+      "name": "Notify Ama - Edge Case (Telegram)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -384,
+        752
+      ],
+      "webhookId": "21b3a2f5-1715-418d-b296-c4e9062fd190",
+      "credentials": {
+        "telegramApi": {
+          "id": "e1hHtBEfIWBasJb9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "8b012cf0-7f4d-4d2b-814b-33b965d3dc5f",
+      "name": "No Action (Unhandled Channel)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "event-booking",
+        "options": {}
+      },
+      "id": "bf84c050-89fb-4ef2-816c-36018841dd35",
+      "name": "Form: Event Enquiry Follow-Up",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2000,
+        1680
+      ],
+      "webhookId": "84d9c2ac-4325-41d4-aeeb-7d465078ba48",
+      "notes": "Fixed: was a Form Trigger node, which expects n8n's own hosted form UI, not an external JSON POST. Replaced with a real Webhook node matching the site's CONFIG.EVENT_WEBHOOK_URL path."
+    },
+    {
+      "parameters": {
+        "base": {
+          "__rl": true,
+          "value": "appnEGvMpYTER4nU5",
+          "mode": "list",
+          "cachedResultName": "LocalHost Sales Lead for Ama",
+          "cachedResultUrl": "https://airtable.com/appnEGvMpYTER4nU5"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblvhSjB7qWsVgtXk",
+          "mode": "list",
+          "cachedResultName": "Knowledge Base Files",
+          "cachedResultUrl": "https://airtable.com/appnEGvMpYTER4nU5/tblvhSjB7qWsVgtXk"
+        },
+        "id": "recFP9UhvyYOEvbqo",
+        "options": {}
+      },
+      "id": "a2b08e27-d90b-4002-b5a2-d4d7b788a09f",
+      "name": "Get Business Knowledge Base (Deep Analysis)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -1760,
+        1680
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "uMXPFgwIobsRsoEq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"category\": \"HIGH\",\n  \"event_type\": \"wedding\",\n  \"intent_summary\": \"one line on what they actually want\",\n  \"event_details\": \"date, guest count, items/packages as stated\",\n  \"budget_signal\": \"stated: ₦150,000\",\n  \"red_flags\": \"none\",\n  \"recommended_next_step\": \"what Ama should do\",\n  \"recommended_callback_window\": \"e.g. Sunday afternoon, not Saturday\",\n  \"email_subject\": \"Re: Your Inquiry\",\n  \"tailored_email\": \"warm reply grounded in their specifics\"\n}"
+      },
+      "id": "74c955b6-a916-40dd-8efa-66b410b11e2c",
+      "name": "Lead Analysis Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -1312,
+        1952
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Name: {{ $('Form: Event Enquiry Follow-Up').item.json.body.full_name }}\nPhone: {{ $('Form: Event Enquiry Follow-Up').item.json.body.phone }}\nEmail: {{ $('Form: Event Enquiry Follow-Up').item.json.body.email }}\nStated event type: {{ $('Form: Event Enquiry Follow-Up').item.json.body.event_type }}\nStated budget range: {{ $('Form: Event Enquiry Follow-Up').item.json.body.budget_range }}\nStated date: {{ $('Form: Event Enquiry Follow-Up').item.json.body.event_date }}\nDetails: {{ $('Form: Event Enquiry Follow-Up').item.json.body.details }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=BUSINESS KNOWLEDGE BASE (use ONLY this to answer what Ama Events Co. can or cannot do — never guess):\n{{ $json.Content }}\n\nYou are a lead-screening analyst for Ama Events Co., a small event planning, decor, and rental business based in Port Harcourt, Rivers State, Nigeria. You receive details from a follow-up webform after an initial in-platform inquiry. The owner is hands-on and rarely online in real time — she's out on deliveries and setups, especially Saturdays — so your screening is the only thing standing between a live inquiry and a stale one.\n\nRules:\n- category must be exactly one of: HIGH, MEDIUM, LOW. HIGH = event date or delivery date stated, specific items/packages named, and clear urgency or budget. MEDIUM = genuine interest but missing several of those specifics. LOW = vague, unlikely to convert, or very early-stage browsing.\n- Never invent a date, item, guest count, budget, price, or travel policy that isn't stated in the enquiry or in the knowledge base above.\n- All monetary amounts are in Nigerian Naira (₦). The enquiry includes a selected budget range field — treat that as the primary budget signal.\n- BUDGET FLOOR CHECK: ₦200,000 for standalone rentals, ₦500,000 for local Port Harcourt decor, ₦1,500,000 for interstate projects, ₦150,000 for surprise packages. If below floor, do NOT drop the category — note it in red_flags instead.\n- EXTERNAL VENDOR ITEMS (catering, drinks/bar, sound/lighting/DJ, photography, security): never estimate a price for them — note interest in event_details and flag in red_flags that pricing needs Ama's direct approval.\n- recommended_next_step and recommended_callback_window should default to Sunday afternoon or Monday evening for anything received Friday night through Saturday — she should always be notified immediately regardless of day, this only affects the promised callback window.\n- tailored_email confirms receipt and sets expectations for the callback, not further qualifying questions.\n\nRespond only in the required JSON format."
+            }
+          ]
+        }
+      },
+      "id": "a0468f8d-abbd-4a11-9b09-4b598b5084c3",
+      "name": "AI Lead Analyzer",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        -1456,
+        1680
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appnEGvMpYTER4nU5",
+          "mode": "list",
+          "cachedResultName": "LocalHost Sales Lead for Ama",
+          "cachedResultUrl": "https://airtable.com/appnEGvMpYTER4nU5"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblaKWwQjtNlJ2LlH",
+          "mode": "list",
+          "cachedResultName": "Sales Pipeline and Enquiries",
+          "cachedResultUrl": "https://airtable.com/appnEGvMpYTER4nU5/tblaKWwQjtNlJ2LlH"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Form: Event Enquiry Follow-Up').item.json.body.full_name }}",
+            "Phone": "={{ $('Form: Event Enquiry Follow-Up').item.json.body.phone }}",
+            "Email": "={{ $('Form: Event Enquiry Follow-Up').item.json.body.email }}",
+            "Category": "={{ $json.output.category }}",
+            "Event_Type": "={{ $json.output.event_type }}",
+            "Intent_Summary": "={{ $json.output.intent_summary }}",
+            "Event_Details": "={{ $json.output.event_details }}",
+            "Budget_Signal": "={{ $json.output.budget_signal }}",
+            "Red_Flags": "={{ $json.output.red_flags }}",
+            "Next_Step": "={{ $json.output.recommended_next_step }}",
+            "Callback_Window": "={{ $json.output.recommended_callback_window }}",
+            "Date": "={{ $('Form: Event Enquiry Follow-Up').item.json.body.event_date }}",
+            "Message": "={{ $('Form: Event Enquiry Follow-Up').item.json.body.details }}"
+          },
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false,
+          "schema": []
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "9897bba8-e54f-47ba-9827-e0fc512cbfec",
+      "name": "Log to Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -1104,
+        1680
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "uMXPFgwIobsRsoEq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Form: Event Enquiry Follow-Up').item.json.body.email }}",
+        "subject": "={{ $('AI Lead Analyzer').item.json.output.email_subject }}",
+        "message": "={{ '<div style=\"font-family: Georgia, serif; max-width: 560px; margin: 0 auto; background: #FBF3E7; color: #2B1220;\">' + '<div style=\"background: #45102A; padding: 28px 32px; text-align: center;\">' + '<h1 style=\"color: #E3C567; font-size: 22px; margin: 0; letter-spacing: 0.5px;\">Ama Events Co.</h1>' + '</div>' + '<div style=\"height: 6px; background: repeating-linear-gradient(90deg, #C9A227 0 14px, #1B5540 14px 20px, #33091F 20px 26px, #E3C567 26px 36px, #B15A2E 36px 42px, #1B5540 42px 48px);\"></div>' + '<div style=\"padding: 32px; line-height: 1.6; font-size: 15px;\">' + $('AI Lead Analyzer').item.json.output.tailored_email.replace(/\\n/g, '<br>') + '</div>' + '<div style=\"padding: 20px 32px; background: #45102A; color: #E9D9C3; font-size: 12px; text-align: center;\">Ama Events Co. — Port Harcourt, Rivers State</div>' + '</div>' }}",
+        "options": {
+          "appendAttribution": false
+        },
+        "emailType": "html"
+      },
+      "id": "91966940-795b-41e5-8e07-ff48c5c5b9d8",
+      "name": "Send Confirmation Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        -880,
+        1552
+      ],
+      "webhookId": "b28a673a-8b4e-41af-86fe-e27f440afd1c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "CEL4qdDFm10bEzkj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.output.category }}",
+              "operator": {
+                "operation": "notEquals",
+                "type": "string"
+              },
+              "rightValue": "LOW"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fd102190-14ba-48e8-9613-fe67627e42a2",
+      "name": "IF Category High or Medium",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -880,
+        1760
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "6400591434",
+        "text": "=<b>🎯 New {{ $('AI Lead Analyzer').item.json.output.category }} Lead</b>\n\n<b>Summary:</b> {{ $('AI Lead Analyzer').item.json.output.intent_summary }}\n\n<b>Event:</b> {{ $('AI Lead Analyzer').item.json.output.event_type }} — {{ $('AI Lead Analyzer').item.json.output.event_details }}\n<b>Budget:</b> {{ $('AI Lead Analyzer').item.json.output.budget_signal }}\n<b>Red flags:</b> {{ $('AI Lead Analyzer').item.json.output.red_flags }}\n<b>Suggested callback window:</b> {{ $('AI Lead Analyzer').item.json.output.recommended_callback_window }}\n(customer has already been told to expect a call in this window — no need to act today unless you're free)\n\n<b>Contact:</b> {{ $('Form: Event Enquiry Follow-Up').item.json.body.full_name }} — {{ $('Form: Event Enquiry Follow-Up').item.json.body.phone }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "04c70bd2-08b3-4a6d-a598-38609d2dc8ac",
+      "name": "Notify Ama via Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -576,
+        1728
+      ],
+      "webhookId": "9a8f7cca-77a6-471a-9561-2eaf09fc0a42",
+      "credentials": {
+        "telegramApi": {
+          "id": "e1hHtBEfIWBasJb9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rental-booking",
+        "options": {}
+      },
+      "id": "c0521544-1ab7-475c-926d-9e7a70ad7931",
+      "name": "Form: Rental Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -2896,
+        1168
+      ],
+      "webhookId": "26a4319f-a373-4b57-aa9d-0680b68f567d",
+      "notes": "Fixed: was a Form Trigger node. Replaced with a real Webhook node matching the site's CONFIG.RENTAL_WEBHOOK_URL path."
+    },
+    {
+      "parameters": {
+        "base": {
+          "__rl": true,
+          "value": "appnEGvMpYTER4nU5",
+          "mode": "list",
+          "cachedResultName": "LocalHost Sales Lead for Ama",
+          "cachedResultUrl": "https://airtable.com/appnEGvMpYTER4nU5"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblvhSjB7qWsVgtXk",
+          "mode": "list",
+          "cachedResultName": "Knowledge Base Files",
+          "cachedResultUrl": "https://airtable.com/appnEGvMpYTER4nU5/tblvhSjB7qWsVgtXk"
+        },
+        "id": "recFP9UhvyYOEvbqo",
+        "options": {}
+      },
+      "id": "010cf02c-355c-4cf6-9bbb-34b107e156f3",
+      "name": "Get Business Knowledge Base (Rental Analysis)",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -2672,
+        1168
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "uMXPFgwIobsRsoEq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"category\": \"HIGH\",\n  \"items_requested\": \"150 plastic chairs\",\n  \"delivery_location\": \"Port Harcourt, GRA Phase 2\",\n  \"date_needed\": \"2026-08-01\",\n  \"red_flags\": \"none\",\n  \"recommended_next_step\": \"confirm stock and quote delivery fee\",\n  \"recommended_callback_window\": \"Monday morning\",\n  \"email_subject\": \"Re: Your Rental Request\",\n  \"tailored_email\": \"warm reply confirming receipt, referencing their specific items/date\"\n}"
+      },
+      "id": "c39a0be6-0e68-4c73-a186-e7382965e78e",
+      "name": "Rental Analysis Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -2400,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Name: {{ $('Form: Rental Request').item.json.body.full_name }}\nPhone: {{ $('Form: Rental Request').item.json.body.phone }}\nEmail: {{ $('Form: Rental Request').item.json.body.email }}\nItem Type: {{ $('Form: Rental Request').item.json.body.item_type }}\nQuantity: {{ $('Form: Rental Request').item.json.body.quantity }}\nDelivery Location: {{ $('Form: Rental Request').item.json.body.delivery_location }}\nDate Needed: {{ $('Form: Rental Request').item.json.body.date_needed }}\nAdditional Notes: {{ $('Form: Rental Request').item.json.body.notes }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=BUSINESS KNOWLEDGE BASE (use ONLY this to answer what Ama Events Co. can or cannot do — never guess):\n{{ $json.Content }}\n\nYou are a rental-request screening analyst for Ama Events Co. This is a STANDALONE RENTAL request (no full event planning involved) submitted via webform. The owner is hands-on and rarely online in real time, especially Saturdays.\n\nRules:\n- category must be exactly one of: HIGH, MEDIUM, LOW. HIGH = quantity, location, and date all clearly stated with reasonable lead time. MEDIUM = missing one of those or lead time is tight. LOW = vague or very short notice with little detail.\n- LEAD TIME CHECK: compare Date Needed against whatever minimum lead-time policy is in the knowledge base. Flag in red_flags if the request is sooner than that minimum — do not just proceed silently.\n- FLOOR CHECK: standalone rentals have a ₦200,000 floor per the knowledge base. If the quantity/items seem unlikely to clear that floor, flag it in red_flags so Ama can decide whether to quote a minimum order fee.\n- LOCATION CHECK: if Delivery Location is outside Port Harcourt/Rivers State, flag in red_flags that interstate delivery terms apply.\n- Never invent a price, delivery fee, or stock availability not stated in the knowledge base — flag it as something Ama needs to confirm instead.\n- recommended_callback_window and recommended_next_step follow the same realistic timing as event leads — default Sunday afternoon or Monday for anything received Friday night through Saturday; she should always be notified immediately regardless of day.\n- tailored_email confirms receipt, referencing the specific items, quantity, location, and date given, and sets expectations for the callback.\n\nRespond only in the required JSON format."
+            }
+          ]
+        }
+      },
+      "id": "37125249-0001-493c-a5f0-8278d9dfd08e",
+      "name": "AI Rental Analyzer",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        -2544,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appnEGvMpYTER4nU5",
+          "mode": "list",
+          "cachedResultName": "LocalHost Sales Lead for Ama",
+          "cachedResultUrl": "https://airtable.com/appnEGvMpYTER4nU5"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblaKWwQjtNlJ2LlH",
+          "mode": "list",
+          "cachedResultName": "Sales Pipeline and Enquiries",
+          "cachedResultUrl": "https://airtable.com/appnEGvMpYTER4nU5/tblaKWwQjtNlJ2LlH"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Form: Rental Request').item.json.body.full_name }}",
+            "Phone": "={{ $('Form: Rental Request').item.json.body.phone }}",
+            "Email": "={{ $('Form: Rental Request').item.json.body.email }}",
+            "Category": "={{ $json.output.category }}",
+            "Event_Type": "Rental Only",
+            "Event_Details": "={{ $json.output.items_requested }} — delivery to {{ $json.output.delivery_location }} on {{ $json.output.date_needed }}",
+            "Red_Flags": "={{ $json.output.red_flags }}",
+            "Next_Step": "={{ $json.output.recommended_next_step }}",
+            "Callback_Window": "={{ $json.output.recommended_callback_window }}",
+            "Date": "={{ $('Form: Rental Request').item.json.body.date_needed }}"
+          },
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false,
+          "schema": []
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "8784f98b-d1ed-4a99-9f3f-51ef9c900b08",
+      "name": "Log Rental Lead to Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -2208,
+        1168
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "uMXPFgwIobsRsoEq",
+          "name": "Airtable Personal Access Token account"
+        }
+      },
+      "notes": "Logs into the same Sales Pipeline table as event leads, tagged Event_Type = Rental Only, so Ama has one place to look. Budget_Signal is left blank here since rentals use a flat floor check in red_flags instead — add a dedicated field later if you want finer tracking."
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Form: Rental Request').item.json.body.email }}",
+        "subject": "={{ $('AI Rental Analyzer').item.json.output.email_subject }}",
+        "message": "={{ '<div style=\"font-family: Georgia, serif; max-width: 560px; margin: 0 auto; background: #FBF3E7; color: #2B1220;\">' + '<div style=\"background: #45102A; padding: 28px 32px; text-align: center;\">' + '<h1 style=\"color: #E3C567; font-size: 22px; margin: 0; letter-spacing: 0.5px;\">Ama Events Co.</h1>' + '</div>' + '<div style=\"height: 6px; background: repeating-linear-gradient(90deg, #C9A227 0 14px, #1B5540 14px 20px, #33091F 20px 26px, #E3C567 26px 36px, #B15A2E 36px 42px, #1B5540 42px 48px);\"></div>' + '<div style=\"padding: 32px; line-height: 1.6; font-size: 15px;\">' + $('AI Rental Analyzer').item.json.output.tailored_email.replace(/\\n/g, '<br>') + '</div>' + '<div style=\"padding: 20px 32px; background: #45102A; color: #E9D9C3; font-size: 12px; text-align: center;\">Ama Events Co. — Port Harcourt, Rivers State</div>' + '</div>' }}",
+        "options": {
+          "appendAttribution": false
+        },
+        "emailType": "html"
+      },
+      "id": "c29c1ca7-3e80-4395-8259-ceacbd1e59c4",
+      "name": "Send Rental Confirmation Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2,
+      "position": [
+        -2016,
+        1264
+      ],
+      "webhookId": "b3ef3f3e-9a88-4bfe-9eaa-299405ffec32",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "CEL4qdDFm10bEzkj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.output.category }}",
+              "operator": {
+                "operation": "notEquals",
+                "type": "string"
+              },
+              "rightValue": "LOW"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c9102592-973c-47f9-aedd-c99205630f34",
+      "name": "IF Rental Category High or Medium",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2016,
+        1040
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "6400591434",
+        "text": "=<b>📦 New {{ $('AI Rental Analyzer').item.json.output.category }} Rental Request</b>\n\n<b>Items:</b> {{ $('AI Rental Analyzer').item.json.output.items_requested }}\n<b>Delivery:</b> {{ $('AI Rental Analyzer').item.json.output.delivery_location }}\n<b>Date needed:</b> {{ $('AI Rental Analyzer').item.json.output.date_needed }}\n<b>Red flags:</b> {{ $('AI Rental Analyzer').item.json.output.red_flags }}\n<b>Suggested callback window:</b> {{ $('AI Rental Analyzer').item.json.output.recommended_callback_window }}\n(customer has already been told to expect a call in this window — no need to act today unless you're free)\n\n<b>Contact:</b> {{ $('Form: Rental Request').item.json.body.full_name }} — {{ $('Form: Rental Request').item.json.body.phone }}",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "b7227ce8-1e5f-4cad-81af-c845d89ba3ce",
+      "name": "Notify Ama via Telegram (Rental)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -1776,
+        1024
+      ],
+      "webhookId": "e25afe7e-3aab-44e0-9b87-2eb88f54ac91",
+      "credentials": {
+        "telegramApi": {
+          "id": "e1hHtBEfIWBasJb9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -2096,
+        256
+      ],
+      "id": "482c0a07-49b2-41e5-a116-373bb0927af7",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f7dc22c8-9978-45b0-84ca-e430ce8ecfa4",
+              "name": "preview_message",
+              "value": "={{ $('AI Quick Triage').item.json.output.quick_reply.replace('[[FORM_LINK]]', 'https://ama-events-co-site.vercel.app/#packages').replace('[[RENTAL_FORM_LINK]]', 'https://ama-events-co-site.vercel.app/#rentals') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -416,
+        -160
+      ],
+      "id": "7c2c9e63-0fc6-4d9c-9807-e8b8b62027c0",
+      "name": "Whatsapp message preview"
+    },
+    {
+      "parameters": {
+        "chatId": "6400591434",
+        "text": "=<b>📥 NEW INBOUND ENQUIRY</b>\n\n• <b>Channel:</b> {{ $('Webhook (Channel Message)').item.json.body.channel }}\n• <b>Sender ID:</b> <code>{{ $('Webhook (Channel Message)').item.json.body.body.sender_id }}</code>\n• <b>From:</b> {{ $('Webhook (Channel Message)').item.json.body.body.sender_name }}\n\n💬 <b>Incoming Message:</b>\n<i>\"{{ $('Webhook (Channel Message)').item.json.body.body.message }}\"</i>\n\n🤖 <b>System Auto-Reply:</b>\n<i>\"{{ $json.preview_message }}\"</i>\n\n⚠️ <b>NOTE:</b> <u>Remember to check if a form was actually filled by this lead before manual follow-up!</u>",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "39488544-658f-4d5c-9287-18c5582b8f4f",
+      "name": "Notify Ama - Potential Lead (Telegram)1",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -80,
+        -416
+      ],
+      "webhookId": "21b3a2f5-1715-418d-b296-c4e9062fd190",
+      "credentials": {
+        "telegramApi": {
+          "id": "e1hHtBEfIWBasJb9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f7dc22c8-9978-45b0-84ca-e430ce8ecfa4",
+              "name": "preview_message",
+              "value": "={{ $('AI Quick Triage').item.json.output.quick_reply.replace('[[FORM_LINK]]', 'https://ama-events-co-site.vercel.app/#packages').replace('[[RENTAL_FORM_LINK]]', 'https://ama-events-co-site.vercel.app/#rentals') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -400,
+        112
+      ],
+      "id": "30c6b3a0-806a-479d-8582-9ba00574e017",
+      "name": "Instagram message preview1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f7dc22c8-9978-45b0-84ca-e430ce8ecfa4",
+              "name": "preview_message",
+              "value": "={{ $('AI Quick Triage').item.json.output.quick_reply.replace('[[FORM_LINK]]', 'https://ama-events-co-site.vercel.app/#packages').replace('[[RENTAL_FORM_LINK]]', 'https://ama-events-co-site.vercel.app/#rentals') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -400,
+        320
+      ],
+      "id": "ce5e10d4-1965-42fe-a1ad-8495c2753a6b",
+      "name": "Reply via comment preview"
+    },
+    {
+      "parameters": {
+        "chatId": "6400591434",
+        "text": "=<b>📥 NEW INBOUND ENQUIRY</b>\n\n• <b>Channel:</b> {{ $('Webhook (Channel Message)').item.json.body.channel }}\n• <b>Sender ID:</b> <code>{{ $('Webhook (Channel Message)').item.json.body.body.sender_id }}</code>\n• <b>From:</b> {{ $('Webhook (Channel Message)').item.json.body.body.sender_name }}\n\n💬 <b>Incoming Message:</b>\n<i>\"{{ $('Webhook (Channel Message)').item.json.body.body.message }}\"</i>\n\n🤖 <b>System Auto-Reply:</b>\n<i>\"{{ $json.preview_message }}\"</i>\n\n⚠️ <b>NOTE:</b> <u>Remember to check if a form was actually filled by this lead before manual follow-up!</u>",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "a58e3a9a-b5f2-451e-b577-2a92d0f2257f",
+      "name": "Notify Ama - Potential Lead (Instagram DM)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -80,
+        -32
+      ],
+      "webhookId": "21b3a2f5-1715-418d-b296-c4e9062fd190",
+      "credentials": {
+        "telegramApi": {
+          "id": "e1hHtBEfIWBasJb9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "6400591434",
+        "text": "=<b>📥 NEW INBOUND ENQUIRY</b>\n\n• <b>Channel:</b> {{ $('Webhook (Channel Message)').item.json.body.channel }}\n• <b>Sender ID:</b> <code>{{ $('Webhook (Channel Message)').item.json.body.body.sender_id }}</code>\n• <b>From:</b> {{ $('Webhook (Channel Message)').item.json.body.body.sender_name }}\n\n💬 <b>Incoming Message:</b>\n<i>\"{{ $('Webhook (Channel Message)').item.json.body.body.message }}\"</i>\n\n🤖 <b>System Auto-Reply:</b>\n<i>\"{{ $json.preview_message }}\"</i>\n\n⚠️ <b>NOTE:</b> <u>Remember to check if a form was actually filled by this lead before manual follow-up!</u>",
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "id": "076d9d2c-a046-4941-852e-0c34fd2700f1",
+      "name": "Notify Ama - Potential Lead (Comment section)",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -64,
+        320
+      ],
+      "webhookId": "21b3a2f5-1715-418d-b296-c4e9062fd190",
+      "credentials": {
+        "telegramApi": {
+          "id": "e1hHtBEfIWBasJb9",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## ⚠️ Meta credential setup — read before going live\n\nUse a **Meta System User token** (Business Manager → System Users) for the WhatsApp/Instagram/Facebook credential used across the Reply nodes in this workflow — NOT a personal user access token.\n\nPersonal tokens expire in ~60 days and will silently break every outbound reply node with no warning until Ama notices replies have stopped going out. System User tokens can be issued as long-lived/non-expiring, which is what a production business workflow needs.\n\nAlso be aware: Meta enforces API rate limits. The 3 outbound reply nodes (WhatsApp/Instagram DM/Comment) now have retry-with-backoff configured (3 tries, 5s apart) to survive transient rate-limit errors — but a genuinely viral post with hundreds of simultaneous comments can still outpace what a single workflow execution path handles gracefully. That's a scale problem to revisit if/when volume grows, not something to solve preemptively for a small business's first year.",
+        "height": 340,
+        "width": 460,
+        "color": 5
+      },
+      "id": "sticky-meta-setup-note",
+      "name": "Sticky Note - Meta Credential Setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1800,
+        -700
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook (Channel Message)": {
+      "main": [
+        [
+          {
+            "node": "Search Prior Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Prior Contact": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Returning Contact": {
+      "main": [
+        [
+          {
+            "node": "Get Business Knowledge Base (Triage)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Business Knowledge Base (Triage)": {
+      "main": [
+        [
+          {
+            "node": "AI Quick Triage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Quick Triage",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Lead Analyzer",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Rental Analyzer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quick Triage Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Quick Triage",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Quick Triage": {
+      "main": [
+        [
+          {
+            "node": "IF Category is LOW",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Route by Channel",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF Category is Edge Case",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Category is LOW": {
+      "main": [
+        [
+          {
+            "node": "Log Low-Priority Comment",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Raw Inquiry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Channel": {
+      "main": [
+        [
+          {
+            "node": "Whatsapp message preview",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Instagram message preview1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reply via comment preview",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Action (Unhandled Channel)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Category is Edge Case": {
+      "main": [
+        [
+          {
+            "node": "Notify Ama - Edge Case (Telegram)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form: Event Enquiry Follow-Up": {
+      "main": [
+        [
+          {
+            "node": "Get Business Knowledge Base (Deep Analysis)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Business Knowledge Base (Deep Analysis)": {
+      "main": [
+        [
+          {
+            "node": "AI Lead Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Analysis Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Lead Analyzer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Lead Analyzer": {
+      "main": [
+        [
+          {
+            "node": "Log to Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to Airtable": {
+      "main": [
+        [
+          {
+            "node": "Send Confirmation Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF Category High or Medium",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Category High or Medium": {
+      "main": [
+        [
+          {
+            "node": "Notify Ama via Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Form: Rental Request": {
+      "main": [
+        [
+          {
+            "node": "Get Business Knowledge Base (Rental Analysis)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Business Knowledge Base (Rental Analysis)": {
+      "main": [
+        [
+          {
+            "node": "AI Rental Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rental Analysis Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Rental Analyzer",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Rental Analyzer": {
+      "main": [
+        [
+          {
+            "node": "Log Rental Lead to Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Rental Lead to Airtable": {
+      "main": [
+        [
+          {
+            "node": "Send Rental Confirmation Email",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF Rental Category High or Medium",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Rental Category High or Medium": {
+      "main": [
+        [
+          {
+            "node": "Notify Ama via Telegram (Rental)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Check Returning Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Whatsapp message preview": {
+      "main": [
+        [
+          {
+            "node": "Reply via WhatsApp",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notify Ama - Potential Lead (Telegram)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply via Comment (Private Reply)": {
+      "main": [
+        []
+      ]
+    },
+    "Instagram message preview1": {
+      "main": [
+        [
+          {
+            "node": "Reply via Instagram DM",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notify Ama - Potential Lead (Instagram DM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply via comment preview": {
+      "main": [
+        [
+          {
+            "node": "Reply via Comment (Private Reply)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Notify Ama - Potential Lead (Comment section)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "versionId": "4a062dc9-c1ea-4256-ad3d-c14a2775175f",
+  "meta": {
+    "instanceId": "36f1f84b1ee3610e43131bdce5adf045326f2dd9eee626dcc02d492cdb812525"
+  },
+  "nodeGroups": [],
+  "id": "sMhseeffa15DKl6O",
+  "tags": []
+}
