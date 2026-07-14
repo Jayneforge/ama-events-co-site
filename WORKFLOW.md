@@ -1,8 +1,7 @@
 # The n8n Automation — Case Study
 
 *Part of the [Ama Events Co. project](./README.md) — this file covers the backend automation in depth. See the root README for the site itself and the live demo link.*
-📹 [Watch the video walkthrough] (https://www.loom.com/share/e8d61b73e62b42fd969f259f792750d0)
-
+📹 [Watch the video walkthrough] https://www.loom.com/share/e8d61b73e62b42fd969f259f792750d0
 This isn't a "connect two apps together" demo. It's a working pipeline that was built, tested against real execution logs, and debugged the way a production system actually gets debugged — by finding what breaks and fixing it before a real customer hits it.
 
 ---
